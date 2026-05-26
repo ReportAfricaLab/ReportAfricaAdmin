@@ -5,6 +5,7 @@ import HomeScreen from '../screens/HomeScreen';
 import MapScreen from '../screens/MapScreen';
 import CreateReportScreen from '../screens/CreateReportScreen';
 import DonationsScreen from '../screens/DonationsScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 import { theme } from '../theme';
 
 const Tab = createBottomTabNavigator();
@@ -38,6 +39,11 @@ export default function MainTabs() {
         name="Donations"
         component={DonationsScreen}
         options={{ tabBarLabel: 'Help', tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🤝</Text> }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ tabBarLabel: 'Me', tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👤</Text> }}
       />
     </Tab.Navigator>
   );

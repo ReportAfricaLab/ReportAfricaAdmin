@@ -6,6 +6,7 @@ import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import CampaignDetailScreen from '../screens/CampaignDetailScreen';
 import ReportDetailScreen from '../screens/ReportDetailScreen';
+import LicenseRequestsScreen from '../screens/LicenseRequestsScreen';
 import MainTabs from './MainTabs';
 
 const Stack = createNativeStackNavigator();
@@ -21,6 +22,7 @@ export default function RootNavigator() {
             <Stack.Screen name="Main" component={MainTabs} />
             <Stack.Screen name="ReportDetail" component={ReportDetailScreen} options={{ headerShown: true, headerTitle: 'Report', headerTintColor: '#0F7B6C' }} />
             <Stack.Screen name="CampaignDetail" component={CampaignDetailScreen} options={{ headerShown: true, headerTitle: 'Campaign', headerTintColor: '#F97316' }} />
+            <Stack.Screen name="LicenseRequests" component={LicenseRequestsScreen} options={{ headerShown: true, headerTitle: 'License Requests', headerTintColor: '#0F7B6C' }} />
           </>
         ) : (
           <>

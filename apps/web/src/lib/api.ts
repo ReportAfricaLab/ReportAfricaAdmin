@@ -47,4 +47,15 @@ export const api = {
     donate: (token: string, id: string, body: any) => fetchAPI(`/donations/campaigns/${id}/donate`, { method: 'POST', body: JSON.stringify(body), token }),
     verify: (reference: string) => fetchAPI(`/donations/verify/${reference}`),
   },
+  licensing: {
+    request: (token: string, body: any) => fetchAPI('/media-licensing/request', { method: 'POST', body: JSON.stringify(body), token }),
+    myRequests: (token: string, page = 1) => fetchAPI(`/media-licensing/my-requests?page=${page}`, { token }),
+    incoming: (token: string, page = 1) => fetchAPI(`/media-licensing/incoming?page=${page}`, { token }),
+    respond: (token: string, id: string, action: string) => fetchAPI(`/media-licensing/${id}/respond`, { method: 'PATCH', body: JSON.stringify({ action }), token }),
+    pay: (token: string, id: string, body: any) => fetchAPI(`/media-licensing/${id}/pay`, { method: 'POST', body: JSON.stringify(body), token }),
+  },
+  earnings: {
+    list: (token: string, page = 1) => fetchAPI(`/earnings?page=${page}`, { token }),
+    stats: (token: string) => fetchAPI('/earnings/stats', { token }),
+  },
 };

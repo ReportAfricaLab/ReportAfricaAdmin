@@ -15,6 +15,7 @@ export default function Navbar() {
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
           <Link href="/feed" className="hover:text-[#0F7B6C] transition">Feed</Link>
           <Link href="/donations" className="hover:text-[#F97316] transition">Helping Hands</Link>
+          <Link href="/media-licensing" className="hover:text-[#0F7B6C] transition">Media</Link>
           <Link href="/map" className="hover:text-[#0F7B6C] transition">Map</Link>
         </nav>
 
@@ -24,6 +25,7 @@ export default function Navbar() {
               <Link href="/create-report" className="px-4 py-2 text-sm font-semibold text-white bg-[#D92D20] rounded-lg hover:bg-red-700 transition">
                 + Report
               </Link>
+              <Link href="/profile/licenses" className="text-sm text-gray-500 hover:text-gray-700">Licenses</Link>
               <span className="text-sm text-gray-500 hidden sm:inline">{user?.username}</span>
               <button onClick={logout} className="text-sm text-gray-500 hover:text-gray-700">Logout</button>
             </>
