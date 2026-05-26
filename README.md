@@ -78,7 +78,7 @@ npm run dev:mobile # Expo mobile
 - `PATCH /api/v1/users/me` — Update profile (auth required)
 
 ### Reports
-- `POST /api/v1/reports` — Create report (auth required)
+- `POST /api/v1/reports` — Create report (auth required, AI moderated)
 - `GET /api/v1/reports/feed?country=NG&page=1` — Country feed
 - `GET /api/v1/reports/nearby?lat=6.5&lng=3.3&radius=10` — Nearby reports
 - `GET /api/v1/reports/category/:category?country=NG` — By category
@@ -86,10 +86,28 @@ npm run dev:mobile # Expo mobile
 - `PATCH /api/v1/reports/:id/upvote` — Upvote (auth required)
 - `PATCH /api/v1/reports/:id/downvote` — Downvote (auth required)
 
+### Verification
+- `POST /api/v1/reports/:id/verify` — Vote confirm/dispute (auth required)
+- `GET /api/v1/reports/:id/verify` — Get verification stats
+
+### Trust
+- `GET /api/v1/trust/profile` — User trust profile (auth required)
+
+### Donations (Community Helping Hands)
+- `POST /api/v1/donations/campaigns` — Create campaign (auth required)
+- `GET /api/v1/donations/campaigns/feed?country=NG` — Campaign feed
+- `GET /api/v1/donations/campaigns/emergency?country=NG` — Emergency campaigns
+- `GET /api/v1/donations/campaigns/category/:category?country=NG` — By category
+- `GET /api/v1/donations/campaigns/:id` — Single campaign
+- `GET /api/v1/donations/campaigns/:id/donations` — Campaign donors
+- `POST /api/v1/donations/campaigns/:id/donate` — Donate (auth required)
+- `GET /api/v1/donations/verify/:reference` — Verify payment
+- `POST /api/v1/donations/webhook/paystack` — Paystack webhook
+
 ## Development Phases
 
 - [x] Phase 1 — Foundation (monorepo, auth, reporting, feed, maps)
-- [ ] Phase 2 — AI & Trust (moderation, verification, trust scores)
-- [ ] Phase 3 — Community Helping Hands (donations, campaigns)
+- [x] Phase 2 — AI & Trust (moderation, verification, trust scores)
+- [x] Phase 3 — Community Helping Hands (donations, campaigns, Paystack)
 - [ ] Phase 4 — Enterprise (media licensing, government dashboards)
 - [ ] Phase 5 — Continental Expansion (multi-region, languages)

@@ -7,6 +7,7 @@ import { ReportsModule } from './modules/reports/reports.module';
 import { ModerationModule } from './modules/moderation/moderation.module';
 import { TrustModule } from './modules/trust/trust.module';
 import { VerificationModule } from './modules/verification/verification.module';
+import { DonationsModule } from './modules/donations/donations.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { VerificationModule } from './modules/verification/verification.module';
     ModerationModule,
     TrustModule,
     VerificationModule,
+    DonationsModule,
   ],
 })
 export class AppModule {}
