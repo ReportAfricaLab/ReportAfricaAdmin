@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { electionsAPI } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { theme } from '../theme';
@@ -19,6 +20,7 @@ const INCIDENT_COLORS: Record<string, string> = {
 
 export default function ElectionsScreen() {
   const { country } = useAppStore();
+  const navigation = useNavigation<any>();
   const [tab, setTab] = useState<Tab>('feed');
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +85,12 @@ export default function ElectionsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>🗳️ Election Monitor</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.title}>🗳️ Election Monitor</Text>
+          <TouchableOpacity style={styles.reportBtn} onPress={() => navigation.navigate('CreateElectionReport')}>
+            <Text style={styles.reportBtnText}>+ Report</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.electionSelector}>
           {ELECTIONS.map((e) => (
             <TouchableOpacity key={e} style={[styles.electionChip, election === e && styles.electionChipActive]} onPress={() => setElection(e)}>
@@ -124,7 +131,10 @@ export default function ElectionsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.light.background },
   header: { paddingHorizontal: 16, paddingTop: 60, paddingBottom: 12, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: theme.colors.light.border },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700', color: theme.colors.light.text },
+  reportBtn: { backgroundColor: theme.colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  reportBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   electionSelector: { flexDirection: 'row', gap: 8, marginTop: 10 },
   electionChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, backgroundColor: theme.colors.light.background, borderWidth: 1, borderColor: theme.colors.light.border },
   electionChipActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },

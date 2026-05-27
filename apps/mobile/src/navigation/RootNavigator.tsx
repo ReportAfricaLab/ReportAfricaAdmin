@@ -11,6 +11,7 @@ import CreateReportScreen from '../screens/CreateReportScreen';
 import GoLiveScreen from '../screens/GoLiveScreen';
 import SearchScreen from '../screens/SearchScreen';
 import ElectionsScreen from '../screens/ElectionsScreen';
+import CreateElectionReportScreen from '../screens/CreateElectionReportScreen';
 import MainTabs from './MainTabs';
 
 const Stack = createNativeStackNavigator();
@@ -31,6 +32,7 @@ export default function RootNavigator() {
             <Stack.Screen name="GoLive" component={GoLiveScreen} />
             <Stack.Screen name="Search" component={SearchScreen} />
             <Stack.Screen name="Elections" component={ElectionsScreen} />
+            <Stack.Screen name="CreateElectionReport" component={CreateElectionReportScreen} options={{ headerShown: true, headerTitle: 'Election Report', headerTintColor: '#0F7B6C' }} />
           </>
         ) : (
           <>
