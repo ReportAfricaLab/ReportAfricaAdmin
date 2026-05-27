@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { authAPI } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { theme } from '../theme';
@@ -29,7 +29,7 @@ export default function LoginScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.brand}>ReportAfrica</Text>
+        <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
         <Text style={styles.subtitle}>Sign in to your account</Text>
       </View>
 
@@ -66,7 +66,7 @@ export default function LoginScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.light.background, justifyContent: 'center', padding: 24 },
   header: { marginBottom: 40, alignItems: 'center' },
-  brand: { fontSize: 32, fontWeight: '800', color: theme.colors.primary },
+  logo: { width: 220, height: 60 },
   subtitle: { fontSize: theme.fontSize.md, color: theme.colors.light.textSecondary, marginTop: 8 },
   form: { gap: 14 },
   input: { backgroundColor: '#fff', borderWidth: 1, borderColor: theme.colors.light.border, borderRadius: theme.borderRadius.sm, padding: 14, fontSize: theme.fontSize.md },

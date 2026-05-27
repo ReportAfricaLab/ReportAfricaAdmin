@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 
 export default function Navbar() {
@@ -7,9 +8,9 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="text-xl font-bold text-[#0F7B6C]">
-          ReportAfrica
+      <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/logo.png" alt="ReportAfrica" width={300} height={80} className="h-[80px] w-auto" priority />
         </Link>
 
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">

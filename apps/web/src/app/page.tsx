@@ -1,4 +1,5 @@
 import { COLORS } from '@reportafrica/shared';
+import Image from 'next/image';
 
 export default function Home() {
   return (
@@ -6,7 +7,7 @@ export default function Home() {
       {/* Header */}
       <header className="fixed top-0 w-full bg-white/90 backdrop-blur-sm border-b border-gray-200 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-primary">ReportAfrica</h1>
+          <Image src="/logo.png" alt="ReportAfrica" width={180} height={48} className="h-12 w-auto" priority />
           <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-600">
             <a href="#features">Features</a>
             <a href="#categories">Categories</a>
@@ -86,7 +87,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-12 px-4 bg-gray-900 text-gray-400">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <span className="text-white font-bold text-lg">ReportAfrica</span>
+          <Image src="/logo.png" alt="ReportAfrica" width={160} height={40} className="h-10 w-auto" />
           <p className="text-sm">&copy; 2024 ReportAfrica. Africa&apos;s Citizen-Powered Reporting Platform.</p>
         </div>
       </footer>

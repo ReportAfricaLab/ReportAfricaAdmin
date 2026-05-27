@@ -4,9 +4,11 @@
     "slug": "reportafrica",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": null,
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
       "backgroundColor": "#0F7B6C"
     },
     "assetBundlePatterns": ["**/*"],
@@ -21,6 +23,7 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#0F7B6C"
       },
       "package": "com.reportafrica.app",

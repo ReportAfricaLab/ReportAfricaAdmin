@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar';
 export const metadata: Metadata = {
   title: 'ReportAfrica - Africa\'s Citizen-Powered Live Reporting Platform',
   description: 'Real-time citizen journalism, civic accountability, and community reporting platform built for Africa.',
-  icons: { icon: '/icon.svg' },
+  icons: { icon: '/icon.png', apple: '/icon.png' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-[#F8FAFC] text-gray-900 antialiased min-h-screen">
         <AuthProvider>
           <Navbar />
-          <main className="pt-16">{children}</main>
+          <main className="pt-20">{children}</main>
         </AuthProvider>
       </body>
     </html>

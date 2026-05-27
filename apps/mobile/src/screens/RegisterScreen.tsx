@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image } from 'react-native';
 import { authAPI } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { getCurrentLocation } from '../services/location';
@@ -46,7 +46,7 @@ export default function RegisterScreen({ navigation }: any) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.brand}>ReportAfrica</Text>
+      <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
       <Text style={styles.subtitle}>Create your account</Text>
 
       <Text style={styles.label}>Country</Text>
@@ -95,8 +95,8 @@ export default function RegisterScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.light.background },
-  content: { padding: 24, paddingTop: 80 },
-  brand: { fontSize: 28, fontWeight: '800', color: theme.colors.primary, textAlign: 'center' },
+  content: { padding: 24, paddingTop: 80, alignItems: 'center' },
+  logo: { width: 220, height: 60, marginBottom: 8 },
   subtitle: { fontSize: theme.fontSize.md, color: theme.colors.light.textSecondary, textAlign: 'center', marginBottom: 32 },
   label: { fontSize: theme.fontSize.sm, fontWeight: '600', color: theme.colors.light.text, marginBottom: 8 },
   countryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
