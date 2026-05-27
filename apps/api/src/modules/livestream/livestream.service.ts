@@ -24,20 +24,22 @@ export class LivestreamService {
   async createStream(userId: string, country: string, dto: { title: string; description?: string; category?: string; latitude?: number; longitude?: number; electionName?: string; electionState?: string; electionPollingUnit?: string }) {
     // Create IVS channel via AWS API
     const channelData = await this.createIVSChannel(dto.title);
+    const isElection = !!dto.electionName;
 
     const stream = this.streamRepo.create({
       userId,
       country,
       title: dto.title,
       description: dto.description || '',
-      category: dto.electionName ? 'election' : (dto.category || 'general'),
+      category: isElection ? 'election' : (dto.category || 'general'),
       latitude: dto.latitude,
       longitude: dto.longitude,
       channelArn: channelData.channelArn,
       streamKeyValue: channelData.streamKeyValue,
       ingestEndpoint: channelData.ingestEndpoint,
       playbackUrl: channelData.playbackUrl,
-      status: 'ready',
+      status: isElection ? 'live' : 'ready',
+      startedAt: isElection ? new Date() : undefined,
       electionName: dto.electionName,
       electionState: dto.electionState,
       electionPollingUnit: dto.electionPollingUnit,

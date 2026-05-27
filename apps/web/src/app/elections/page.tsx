@@ -1,6 +1,10 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { api } from '@/lib/api';
+
+const StreamPlayer = dynamic(() => import('@/components/StreamPlayer'), { ssr: false });
+const StreamBroadcaster = dynamic(() => import('@/components/StreamBroadcaster'), { ssr: false });
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -182,28 +186,7 @@ export default function ElectionsPage() {
       )}
 
       {/* Live Tab */}
-      {!loading && tab === 'live' && (
-        <div className="space-y-4">
-          {liveStreams.length === 0 ? (
-            <EmptyState icon="🔴" title="No election livestreams" desc="Citizens can go live from polling units during elections" />
-          ) : (
-            liveStreams.map((s: any) => (
-              <div key={s.id} className="bg-white rounded-xl border border-gray-200 p-5">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded bg-red-600 text-white">
-                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" /> LIVE
-                  </span>
-                  <span className="text-xs text-gray-500">{s.viewerCount || 0} watching</span>
-                  {s.electionState && <span className="text-xs text-gray-400">· {s.electionState}</span>}
-                  {s.electionPollingUnit && <span className="text-xs text-gray-400">· PU: {s.electionPollingUnit}</span>}
-                </div>
-                <p className="text-sm font-semibold text-gray-900">{s.title}</p>
-                <p className="text-xs text-gray-500 mt-1">{s.user?.displayName || 'Anonymous'} · Started {new Date(s.startedAt).toLocaleTimeString()}</p>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+      {!loading && tab === 'live' && <ElectionLiveTab streams={liveStreams} />}
 
       {/* Submit Report Modal */}
       {showForm && <ElectionReportForm election={election} onClose={() => setShowForm(false)} onSubmitted={() => { setShowForm(false); loadData(); }} />}
@@ -272,6 +255,71 @@ function FeedCard({ r }: { r: any }) {
   );
 }
 
+// === Election Live Tab ===
+
+function ElectionLiveTab({ streams }: { streams: any[] }) {
+  const [watching, setWatching] = useState<any>(null);
+
+  if (watching) {
+    return (
+      <div className="space-y-4">
+        <button onClick={() => setWatching(null)} className="text-sm text-[#0F7B6C] font-medium hover:underline">← Back to streams</button>
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <StreamPlayer playbackUrl={watching.playbackUrl} title={watching.title} onError={() => {}} />
+          <div className="p-4">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded bg-red-600 text-white">
+                <span className="w-2 h-2 rounded-full bg-white animate-pulse" /> LIVE
+              </span>
+              <span className="text-xs text-gray-500">{watching.viewerCount || 0} watching</span>
+            </div>
+            <p className="text-sm font-semibold text-gray-900">{watching.title}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {watching.user?.displayName || 'Anonymous'}
+              {watching.electionState && ` · ${watching.electionState}`}
+              {watching.electionPollingUnit && ` · PU: ${watching.electionPollingUnit}`}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {streams.length === 0 ? (
+        <EmptyState icon="🔴" title="No election livestreams" desc="Citizens can go live from polling units during elections" />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {streams.map((s: any) => (
+            <div key={s.id} onClick={() => setWatching(s)}
+              className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition cursor-pointer">
+              <div className="relative bg-gray-900 aspect-video flex items-center justify-center">
+                <span className="text-4xl">📹</span>
+                <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 bg-red-600 text-white text-xs font-bold rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE
+                </div>
+                <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/60 text-white text-xs rounded-full">
+                  👁 {s.viewerCount || 0}
+                </div>
+              </div>
+              <div className="p-4">
+                <p className="text-sm font-semibold text-gray-900">{s.title}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {s.user?.displayName || 'Anonymous'}
+                  {s.electionState && ` · ${s.electionState}`}
+                  {s.electionPollingUnit && ` · PU: ${s.electionPollingUnit}`}
+                  {s.startedAt && ` · Started ${new Date(s.startedAt).toLocaleTimeString()}`}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // === Election Report Form ===
 
 function ElectionReportForm({ election, onClose, onSubmitted }: { election: string; onClose: () => void; onSubmitted: () => void }) {
@@ -284,6 +332,8 @@ function ElectionReportForm({ election, onClose, onSubmitted }: { election: stri
   const [results, setResults] = useState<{ party: string; votes: string }[]>([{ party: '', votes: '' }]);
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [showBroadcast, setShowBroadcast] = useState(false);
+  const [broadcastConfig, setBroadcastConfig] = useState<{ ingestEndpoint: string; streamKey: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const addResultRow = () => setResults([...results, { party: '', votes: '' }]);
@@ -352,15 +402,18 @@ function ElectionReportForm({ election, onClose, onSubmitted }: { election: stri
 
     setSubmitting(true);
     try {
-      await api.livestream.create(token, {
+      const stream = await api.livestream.create(token, {
         title: `Election Live: ${state}${pollingUnit ? ` - PU ${pollingUnit}` : ''}`,
         description: `Live from ${election}`,
         electionName: election,
         electionState: state,
         electionPollingUnit: pollingUnit || undefined,
       });
-      alert('Stream created! Go to the Live section to start broadcasting.');
-      onSubmitted();
+      setBroadcastConfig({
+        ingestEndpoint: stream.ingestEndpoint,
+        streamKey: stream.streamKeyValue || stream.streamKey || '',
+      });
+      setShowBroadcast(true);
     } catch (err: any) {
       alert(err.message || 'Failed to create livestream');
     } finally {
@@ -472,6 +525,19 @@ function ElectionReportForm({ election, onClose, onSubmitted }: { election: stri
           🔴 Go Live from Polling Unit
         </button>
         <p className="text-xs text-orange-500 text-center mt-2">⚠️ Ensure livestreaming is permitted at your polling unit</p>
+
+        {/* Broadcast View */}
+        {showBroadcast && broadcastConfig && (
+          <div className="mt-4 border-t border-gray-200 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-gray-900">📡 Broadcasting</h3>
+              <button onClick={() => { setShowBroadcast(false); onSubmitted(); }}
+                className="text-xs text-red-600 font-semibold">End & Close</button>
+            </div>
+            <StreamBroadcaster config={broadcastConfig} autoPreview={true} />
+            <p className="text-xs text-green-600 text-center mt-2">✓ You are live! Viewers can see your stream in the Live tab.</p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -44,7 +44,7 @@ export class LivestreamEntity {
   @Column({ name: 'channel_arn', nullable: true })
   channelArn: string;
 
-  @Column({ name: 'stream_key_value', nullable: true, select: false })
+  @Column({ name: 'stream_key_value', nullable: true })
   streamKeyValue: string;
 
   @Column({ name: 'ingest_endpoint', nullable: true })

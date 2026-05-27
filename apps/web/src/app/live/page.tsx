@@ -1,8 +1,12 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
+
+const StreamPlayer = dynamic(() => import('@/components/StreamPlayer'), { ssr: false });
+const StreamBroadcaster = dynamic(() => import('@/components/StreamBroadcaster'), { ssr: false });
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3001/realtime';
 
@@ -36,6 +40,8 @@ export default function LivePage() {
   const [viewerCount, setViewerCount] = useState(0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [broadcastConfig, setBroadcastConfig] = useState<{ ingestEndpoint: string; streamKey: string } | null>(null);
+  const [watchingStream, setWatchingStream] = useState<any>(null);
 
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
@@ -99,16 +105,9 @@ export default function LivePage() {
 
   const startCamera = async () => {
     if (!isAuthenticated) { router.push('/login'); return; }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true });
-      streamRef.current = stream;
-      if (videoRef.current) videoRef.current.srcObject = stream;
-      setStatus('preview');
-      setTab('go-live');
-      setError('');
-    } catch {
-      setError('Camera access denied. Please allow camera and microphone permissions.');
-    }
+    setStatus('preview');
+    setTab('go-live');
+    setError('');
   };
 
   const goLive = async () => {
@@ -118,6 +117,10 @@ export default function LivePage() {
     try {
       const stream = await api.livestream.create(token, { ...form, ...location });
       setStreamId(stream.id);
+      setBroadcastConfig({
+        ingestEndpoint: stream.ingestEndpoint,
+        streamKey: stream.streamKeyValue || '',
+      });
       await api.livestream.goLive(token, stream.id);
       setStatus('live');
     } catch (err: any) {
@@ -130,10 +133,10 @@ export default function LivePage() {
   const endStream = async () => {
     if (!token || !streamId) return;
     try { await api.livestream.end(token, streamId); } catch {}
-    stopCamera();
     setStatus('ended');
     setChatMessages([]);
     setViewerCount(0);
+    setBroadcastConfig(null);
   };
 
   const stopCamera = () => {
@@ -149,6 +152,7 @@ export default function LivePage() {
     setForm({ title: '', description: '', category: 'general' });
     setChatMessages([]);
     setError('');
+    setBroadcastConfig(null);
   };
 
   const sendChat = () => {
@@ -163,11 +167,11 @@ export default function LivePage() {
   };
 
   const watchStream = async (s: any) => {
+    setWatchingStream(s);
     setStreamId(s.id);
     setStatus('live');
     setTab('go-live');
     setChatMessages([]);
-    // Don't start camera — we're watching, not broadcasting
   };
 
   return (
@@ -198,6 +202,33 @@ export default function LivePage() {
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Video Area */}
           <div className="flex-1 bg-white rounded-xl border border-gray-200 overflow-hidden">
+            {watchingStream ? (
+              <div>
+                <StreamPlayer playbackUrl={watchingStream.playbackUrl} title={watchingStream.title} />
+                <div className="p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded bg-red-600 text-white">
+                      <span className="w-2 h-2 rounded-full bg-white animate-pulse" /> LIVE
+                    </span>
+                    <span className="text-xs text-gray-500">{watchingStream.viewerCount || 0} watching</span>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900">{watchingStream.title}</p>
+                  <p className="text-xs text-gray-500 mt-1">{watchingStream.user?.displayName || 'Anonymous'}</p>
+                  <button onClick={() => { setWatchingStream(null); setStatus('idle'); setTab('watching'); }}
+                    className="mt-3 text-xs text-[#0F7B6C] font-medium hover:underline">← Back to streams</button>
+                </div>
+              </div>
+            ) : status === 'live' && broadcastConfig ? (
+              <div>
+                <StreamBroadcaster config={broadcastConfig} autoPreview={true} />
+                <div className="p-4">
+                  <button onClick={endStream} className="w-full py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-700 transition">
+                    ⏹ End Stream
+                  </button>
+                </div>
+              </div>
+            ) : (
+            <div>
             <div className="relative bg-black aspect-video">
               <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
               {status === 'live' && (
@@ -234,6 +265,8 @@ export default function LivePage() {
                 </div>
               )}
             </div>
+            </div>
+            )}
           </div>
 
           {/* Chat Panel — responsive: below video on mobile, beside on desktop */}

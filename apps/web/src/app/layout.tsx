@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 export const metadata: Metadata = {
   title: 'ReportAfrica - Africa\'s Citizen-Powered Live Reporting Platform',
   description: 'Real-time citizen journalism, civic accountability, and community reporting platform built for Africa.',
+  icons: { icon: '/icon.svg' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
