@@ -45,6 +45,9 @@ function ReportContent() {
 
   useEffect(() => {
     if (!token || !report?.author?.id) return;
+    // Don't check follow status for own reports
+    const currentUserId = JSON.parse(localStorage.getItem('ra_user') || '{}')?.id;
+    if (report.author.id === currentUserId) return;
     api.follows.isFollowing(token, report.author.id).then(setIsFollowing).catch(() => {});
   }, [token, report]);
 
@@ -133,7 +136,7 @@ function ReportContent() {
             <span className="font-medium text-gray-900">{report.author?.displayName || 'Anonymous'}</span>
           </div>
           <div className="flex items-center gap-2">
-            {report.author?.id && token && (
+            {report.author?.id && token && report.author.id !== JSON.parse(localStorage.getItem('ra_user') || '{}')?.id && (
               <button onClick={handleFollow}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${isFollowing ? 'bg-gray-100 text-gray-600' : 'bg-[#0F7B6C] text-white hover:bg-[#0B6E4F]'}`}>
                 {isFollowing ? 'Following' : 'Follow'}
