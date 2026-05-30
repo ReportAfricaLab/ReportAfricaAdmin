@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Image, Alert, Switch } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { useAppStore } from '../store/useAppStore';
@@ -28,7 +28,7 @@ const TRUST_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export default function ProfileScreen() {
-  const { user, logout, userCountry, token, setAuth } = useAppStore();
+  const { user, logout, userCountry, token, setAuth, isDarkMode, toggleDarkMode } = useAppStore();
   const { language, setLanguage, t } = useI18n();
   const navigation = useNavigation<any>();
   const [showLangPicker, setShowLangPicker] = useState(false);
@@ -217,6 +217,12 @@ export default function ProfileScreen() {
           <Text style={styles.menuIcon}>🏠</Text>
           <Text style={styles.menuText}>{t('profile.yourCountry', 'Your Country')}</Text>
           <Text style={styles.menuValue}>{COUNTRY_CONFIG[userCountry]?.name || userCountry}</Text>
+        </View>
+
+        <View style={styles.menuItem}>
+          <Text style={styles.menuIcon}>🌙</Text>
+          <Text style={styles.menuText}>Dark Mode</Text>
+          <Switch value={isDarkMode} onValueChange={toggleDarkMode} trackColor={{ true: theme.colors.primary }} />
         </View>
       </View>
 

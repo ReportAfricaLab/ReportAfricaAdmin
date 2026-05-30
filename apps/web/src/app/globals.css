@@ -13,3 +13,13 @@
 body {
   font-family: 'Inter', system-ui, sans-serif;
 }
+
+.dark body,
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: #0F172A;
+  color: #F9FAFB;
+}

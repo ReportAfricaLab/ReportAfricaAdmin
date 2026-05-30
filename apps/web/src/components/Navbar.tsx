@@ -49,7 +49,7 @@ export default function Navbar() {
   const trustInfo = TRUST_LABELS[userProfile.trustLevel || 'new_reporter'] || TRUST_LABELS.new_reporter;
 
   return (
-    <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50">
+    <header className="fixed top-0 w-full bg-white/95 dark:bg-[#1E293B]/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 z-50">
       <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <Image src="/logo.png" alt="ReportAfrica" width={300} height={80} className="h-[80px] w-auto" priority />
@@ -59,7 +59,7 @@ export default function Navbar() {
           </div>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600 dark:text-gray-300">
           <Link href="/feed" className="hover:text-[#0F7B6C] transition">{t('nav.feed', 'Feed')}</Link>
           <Link href="/search" className="hover:text-[#0F7B6C] transition">{t('nav.search', 'Search')}</Link>
           <Link href="/donations" className="hover:text-[#F97316] transition">{t('nav.donations', 'Helping Hands')}</Link>
@@ -92,11 +92,11 @@ export default function Navbar() {
                 </button>
 
                 {showDropdown && (
-                  <div className="absolute right-0 top-12 w-64 bg-white rounded-xl border border-gray-200 shadow-lg py-2 z-50">
+                  <div className="absolute right-0 top-12 w-64 bg-white dark:bg-[#1E293B] rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg py-2 z-50">
                     {/* User Info */}
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="font-semibold text-gray-900 text-sm">{user?.username || 'Reporter'}</p>
-                      <p className="text-xs text-gray-500">@{user?.username}</p>
+                    <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                      <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{user?.username || 'Reporter'}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">@{user?.username}</p>
                       <div className="flex items-center gap-1.5 mt-1.5">
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: trustInfo.color }} />
                         <span className="text-[11px] font-medium" style={{ color: trustInfo.color }}>{trustInfo.label}</span>
@@ -114,7 +114,7 @@ export default function Navbar() {
                         { href: '/profile/licenses', icon: '📄', label: 'Licenses' },
                       ].map((item) => (
                         <Link key={item.href} href={item.href} onClick={() => setShowDropdown(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                           <span>{item.icon}</span>
                           <span>{item.label}</span>
                         </Link>
@@ -122,9 +122,9 @@ export default function Navbar() {
                     </div>
 
                     {/* Sign Out */}
-                    <div className="border-t border-gray-100 pt-1">
+                    <div className="border-t border-gray-100 dark:border-gray-700 pt-1">
                       <button onClick={() => { logout(); setShowDropdown(false); }}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition w-full text-left">
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition w-full text-left">
                         <span>🚪</span>
                         <span>Sign Out</span>
                       </button>

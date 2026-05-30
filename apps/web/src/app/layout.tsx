@@ -48,7 +48,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-[#F8FAFC] text-gray-900 antialiased min-h-screen">
+      <body className="bg-[#F8FAFC] dark:bg-[#0F172A] text-gray-900 dark:text-gray-100 antialiased min-h-screen">
         <AuthProvider>
           <RTLWrapper>
             <Navbar />

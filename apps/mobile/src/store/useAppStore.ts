@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { setAuthToken } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface User {
   id: string;
@@ -50,5 +51,11 @@ export const useAppStore = create<AppState>((set) => ({
 
   setViewingCountry: (country) => set({ viewingCountry: country, country }),
   setCountry: (country) => set({ viewingCountry: country, country }),
-  toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
+  toggleDarkMode: () => {
+    set((state) => {
+      const newMode = !state.isDarkMode;
+      AsyncStorage.setItem('ra_dark_mode', JSON.stringify(newMode)).catch(() => {});
+      return { isDarkMode: newMode };
+    });
+  },
 }));
