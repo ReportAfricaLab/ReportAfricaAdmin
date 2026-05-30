@@ -64,8 +64,8 @@ export class SearchService {
       .createQueryBuilder('report')
       .leftJoinAndSelect('report.author', 'author')
       .where('report.country = :country', { country })
-      .andWhere('report.createdAt > :since', { since })
-      .orderBy('report.upvotes + report.commentCount + report.viewCount', 'DESC')
+      .andWhere('report."created_at" > :since', { since })
+      .orderBy('report.upvotes + report."comment_count" + report."view_count"', 'DESC')
       .take(20)
       .getMany();
 
