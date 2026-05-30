@@ -122,7 +122,10 @@ export default function HomeScreen() {
         <View style={styles.headerRow}>
           <View style={styles.brandRow}>
             <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
-            <Text style={styles.brandName}>{brandName}</Text>
+            <View>
+              <Text style={styles.brandName}>{brandName}</Text>
+              <Text style={styles.subtitle}>Live Reports</Text>
+            </View>
           </View>
           <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('Search')}>
             <Text style={styles.headerIconText}>🔍</Text>
@@ -227,8 +230,9 @@ const styles = StyleSheet.create({
   headerIcon: { paddingHorizontal: 8, paddingVertical: 8 },
   headerIconText: { fontSize: 20 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
-  logo: { width: 32, height: 32 },
+  logo: { width: 56, height: 56 },
   brandName: { fontSize: theme.fontSize.lg, fontWeight: '700', color: theme.colors.primary },
+  subtitle: { fontSize: 11, color: theme.colors.light.textSecondary, marginTop: 1 },
   filterRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff' },
   countrySelector: { paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#f3f4f6', borderRadius: 20 },
   countrySelectorText: { fontSize: 13, fontWeight: '600', color: theme.colors.light.text },
