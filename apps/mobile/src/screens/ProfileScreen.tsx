@@ -19,11 +19,10 @@ const LANGUAGES: Record<string, string> = {
 };
 
 export default function ProfileScreen() {
-  const { user, logout, country, setCountry } = useAppStore();
+  const { user, logout, userCountry } = useAppStore();
   const { language, setLanguage } = useI18n();
   const navigation = useNavigation<any>();
   const [showLangPicker, setShowLangPicker] = useState(false);
-  const [showCountryPicker, setShowCountryPicker] = useState(false);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -32,7 +31,7 @@ export default function ProfileScreen() {
         <View style={styles.avatar}><Text style={styles.avatarText}>{user?.displayName?.[0] || '?'}</Text></View>
         <Text style={styles.name}>{user?.displayName || 'Reporter'}</Text>
         <Text style={styles.username}>@{user?.username}</Text>
-        <Text style={styles.countryBadge}>{COUNTRY_CONFIG[country]?.brandName || 'ReportAfrica'}</Text>
+        <Text style={styles.countryBadge}>{COUNTRY_CONFIG[userCountry]?.brandName || COUNTRY_CONFIG[userCountry]?.name || 'ReportAfrica'}</Text>
       </View>
 
       {/* Menu */}
@@ -84,22 +83,11 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => setShowCountryPicker(!showCountryPicker)}>
-          <Text style={styles.menuIcon}>📍</Text>
-          <Text style={styles.menuText}>Country</Text>
-          <Text style={styles.menuValue}>{COUNTRY_CONFIG[country]?.name || country}</Text>
-        </TouchableOpacity>
-
-        {showCountryPicker && (
-          <View style={styles.picker}>
-            {Object.entries(COUNTRY_CONFIG).map(([code, config]) => (
-              <TouchableOpacity key={code} style={[styles.pickerItem, country === code && styles.pickerItemActive]}
-                onPress={() => { setCountry(code); setShowCountryPicker(false); }}>
-                <Text style={[styles.pickerText, country === code && styles.pickerTextActive]}>{config.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+        <View style={styles.menuItem}>
+          <Text style={styles.menuIcon}>🇳🇬</Text>
+          <Text style={styles.menuText}>Your Country</Text>
+          <Text style={styles.menuValue}>{COUNTRY_CONFIG[userCountry]?.name || userCountry}</Text>
+        </View>
       </View>
 
       {/* Info Pages */}

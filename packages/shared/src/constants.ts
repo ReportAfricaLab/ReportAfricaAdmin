@@ -97,3 +97,11 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
   LYD: 'LD', USD: '$', ZMW: 'ZK', MWK: 'MK', SLE: 'Le', LRD: 'L$',
   SOS: 'Sh', MGA: 'Ar',
 };
+
+// Kora-supported currencies for cross-country tipping
+export const KORA_SUPPORTED_CURRENCIES = ['NGN', 'KES', 'GHS', 'ZAR', 'XAF', 'XOF', 'EGP'];
+
+export function canTipCrossCountry(fromCurrency: string, toCurrency: string): boolean {
+  if (fromCurrency === toCurrency) return true;
+  return KORA_SUPPORTED_CURRENCIES.includes(fromCurrency) && KORA_SUPPORTED_CURRENCIES.includes(toCurrency);
+}

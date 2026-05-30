@@ -22,14 +22,15 @@ interface Report {
 }
 
 export default function HomeScreen() {
-  const { country } = useAppStore();
+  const { viewingCountry, setViewingCountry } = useAppStore();
   const navigation = useNavigation<any>();
   const [reports, setReports] = useState<Report[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [sort, setSort] = useState<'smart' | 'latest'>('smart');
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
 
-  const brandName = COUNTRY_CONFIG[country]?.brandName || 'ReportAfrica';
+  const brandName = COUNTRY_CONFIG[viewingCountry]?.brandName || COUNTRY_CONFIG[viewingCountry]?.name || 'ReportAfrica';
 
   useEffect(() => {
     getCurrentLocation().then((loc) => { if (loc) setLocation(loc); }).catch(() => {});
@@ -37,7 +38,7 @@ export default function HomeScreen() {
 
   const loadFeed = async () => {
     try {
-      const res = await reportsAPI.getFeed(country, 1, location?.latitude, location?.longitude, sort);
+      const res = await reportsAPI.getFeed(viewingCountry, 1, location?.latitude, location?.longitude, sort);
       setReports(res.data?.data || []);
     } catch (err) {
       console.error('Failed to load feed:', err);
@@ -50,7 +51,7 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-  useEffect(() => { loadFeed(); }, [country, location, sort]);
+  useEffect(() => { loadFeed(); }, [viewingCountry, location, sort]);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -103,15 +104,30 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
-      {/* Sort Toggle */}
-      <View style={styles.sortRow}>
-        <TouchableOpacity style={[styles.sortBtn, sort === 'smart' && styles.sortBtnActive]} onPress={() => setSort('smart')}>
-          <Text style={[styles.sortBtnText, sort === 'smart' && styles.sortBtnTextActive]}>🔥 Smart</Text>
+      {/* Country Selector + Sort Toggle */}
+      <View style={styles.filterRow}>
+        <TouchableOpacity style={styles.countrySelector} onPress={() => setShowCountryPicker(!showCountryPicker)}>
+          <Text style={styles.countrySelectorText}>📍 {COUNTRY_CONFIG[viewingCountry]?.name || viewingCountry} ▼</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.sortBtn, sort === 'latest' && styles.sortBtnActive]} onPress={() => setSort('latest')}>
-          <Text style={[styles.sortBtnText, sort === 'latest' && styles.sortBtnTextActive]}>🕐 Latest</Text>
-        </TouchableOpacity>
+        <View style={styles.sortRow}>
+          <TouchableOpacity style={[styles.sortBtn, sort === 'smart' && styles.sortBtnActive]} onPress={() => setSort('smart')}>
+            <Text style={[styles.sortBtnText, sort === 'smart' && styles.sortBtnTextActive]}>🔥 Smart</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.sortBtn, sort === 'latest' && styles.sortBtnActive]} onPress={() => setSort('latest')}>
+            <Text style={[styles.sortBtnText, sort === 'latest' && styles.sortBtnTextActive]}>🕐 Latest</Text>
+          </TouchableOpacity>
+        </View>
       </View>
+      {showCountryPicker && (
+        <View style={styles.countryGrid}>
+          {Object.entries(COUNTRY_CONFIG).map(([code, config]) => (
+            <TouchableOpacity key={code} style={[styles.countryChip, viewingCountry === code && styles.countryChipActive]}
+              onPress={() => { setViewingCountry(code); setShowCountryPicker(false); }}>
+              <Text style={[styles.countryChipText, viewingCountry === code && styles.countryChipTextActive]}>{config.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
       <FlatList
         data={reports}
         keyExtractor={(item) => item.id}
@@ -132,11 +148,19 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.light.background },
   header: { paddingHorizontal: 16, paddingTop: 60, paddingBottom: 12, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: theme.colors.light.border },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sortRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff' },
+  filterRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff' },
+  countrySelector: { paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#f3f4f6', borderRadius: 20 },
+  countrySelectorText: { fontSize: 13, fontWeight: '600', color: theme.colors.light.text },
+  sortRow: { flexDirection: 'row', gap: 8 },
   sortBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#f3f4f6' },
   sortBtnActive: { backgroundColor: theme.colors.primary },
   sortBtnText: { fontSize: 13, fontWeight: '600', color: theme.colors.light.textSecondary },
   sortBtnTextActive: { color: '#fff' },
+  countryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: theme.colors.light.border },
+  countryChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: '#f3f4f6' },
+  countryChipActive: { backgroundColor: theme.colors.primary },
+  countryChipText: { fontSize: 11, color: theme.colors.light.textSecondary },
+  countryChipTextActive: { color: '#fff', fontWeight: '600' },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   logo: { width: 40, height: 40 },
   brandName: { fontSize: theme.fontSize.xl, fontWeight: '700', color: theme.colors.primary },

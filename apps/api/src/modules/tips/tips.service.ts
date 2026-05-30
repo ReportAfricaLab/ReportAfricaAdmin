@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { TipEntity, ReportEntity, UserEntity } from '../../database/entities';
 import { PaystackService } from '../donations/paystack.service';
 import { KoraPayService } from '../payments/korapay.service';
+import { CurrencyConversionService } from '../payments/currency-conversion.service';
 import { EarningsService } from '../earnings/earnings.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -49,6 +50,7 @@ export class TipsService {
     private readonly userRepo: Repository<UserEntity>,
     private readonly paystackService: PaystackService,
     private readonly koraPayService: KoraPayService,
+    private readonly currencyService: CurrencyConversionService,
     private readonly earningsService: EarningsService,
     private readonly notifications: NotificationsService,
   ) {}
@@ -128,8 +130,28 @@ export class TipsService {
     const reporter = await this.userRepo.findOne({ where: { id: report.authorId } });
     if (!reporter) throw new NotFoundException('Reporter not found');
 
-    const currency = tipper.tipCurrency || COUNTRY_CURRENCY[tipper.country] || 'NGN';
+    const tipperCurrency = tipper.tipCurrency || COUNTRY_CURRENCY[tipper.country] || 'NGN';
+    const reporterCurrency = COUNTRY_CURRENCY[reporter.country] || 'NGN';
+    const isCrossCurrency = tipperCurrency !== reporterCurrency;
+
+    // Check if cross-currency is supported
+    if (isCrossCurrency && !this.currencyService.isSupported(tipperCurrency, reporterCurrency)) {
+      throw new BadRequestException('Cross-country tipping is not yet available for this region. Coming soon!');
+    }
+
     const reporterAmount = Math.round(dto.amount * (1 - PLATFORM_CUT));
+
+    // Convert to reporter's currency if needed
+    let payoutAmount = reporterAmount;
+    let payoutCurrency = tipperCurrency;
+    let conversionRate = 1;
+
+    if (isCrossCurrency) {
+      const conversion = await this.currencyService.convert(reporterAmount, tipperCurrency, reporterCurrency);
+      payoutAmount = conversion.convertedAmount;
+      payoutCurrency = reporterCurrency;
+      conversionRate = conversion.rate;
+    }
 
     // Deduct from tipper balance
     await this.userRepo
@@ -145,7 +167,7 @@ export class TipsService {
       reporterId: report.authorId,
       tipperId,
       amount: dto.amount,
-      currency,
+      currency: tipperCurrency,
       message: dto.message,
       status: 'success',
       paymentReference: `TIP_${Date.now()}`,
@@ -156,8 +178,8 @@ export class TipsService {
     if (reporter.bankAccountNumber && reporter.bankCode) {
       try {
         await this.koraPayService.initializeSplitPayment({
-          amount: reporterAmount,
-          currency,
+          amount: payoutAmount,
+          currency: payoutCurrency,
           customerEmail: reporter.email,
           customerName: reporter.displayName,
           reference: this.koraPayService.generateReference(),
@@ -166,22 +188,22 @@ export class TipsService {
             accountNumber: reporter.bankAccountNumber,
             accountName: reporter.bankAccountName,
           },
-          platformSplitPercent: 0, // Already took our cut
-          metadata: { tipId: tip.id, reporterId: reporter.id },
+          platformSplitPercent: 0,
+          metadata: { tipId: tip.id, reporterId: reporter.id, crossCurrency: isCrossCurrency, conversionRate },
         });
       } catch {
         // If payout fails, still record earnings for manual payout later
       }
     }
 
-    // Record earnings
+    // Record earnings in reporter's currency
     await this.earningsService.recordEarning({
       reporterId: report.authorId,
-      amount: reporterAmount,
-      currency,
+      amount: payoutAmount,
+      currency: payoutCurrency,
       source: 'tip',
       sourceId: tip.id,
-      description: dto.message ? `Tip: "${dto.message}"` : 'Tip received',
+      description: dto.message ? `Tip: "${dto.message}"` : `Tip received${isCrossCurrency ? ` (converted from ${tipperCurrency})` : ''}`,
       paymentReference: tip.paymentReference,
       payerName: tipper.displayName,
     });
@@ -189,7 +211,7 @@ export class TipsService {
     // Notify reporter
     await this.notifications.sendToUser(report.authorId, {
       title: '💰 You received a tip!',
-      body: `${tipper.displayName} tipped ${currency} ${dto.amount} on your report${dto.message ? `: "${dto.message}"` : ''}`,
+      body: `${tipper.displayName} tipped ${payoutCurrency} ${payoutAmount} on your report${dto.message ? `: "${dto.message}"` : ''}`,
       data: { type: 'tip', reportId: dto.reportId },
     });
 

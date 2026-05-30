@@ -39,7 +39,7 @@ const COUNTRY_CURRENCY: Record<string, string> = {
 export default function ReportDetailScreen({ route }: any) {
   const { id } = route.params;
   const navigation = useNavigation<any>();
-  const { user, country } = useAppStore();
+  const { user, userCountry } = useAppStore();
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -48,7 +48,7 @@ export default function ReportDetailScreen({ route }: any) {
   const [tipBalance, setTipBalance] = useState(0);
   const [updateText, setUpdateText] = useState('');
 
-  const currency = COUNTRY_CURRENCY[country] || 'NGN';
+  const currency = COUNTRY_CURRENCY[userCountry] || 'NGN';
   const symbol = CURRENCY_SYMBOLS[currency] || '₦';
   const presets = getTipPresets(currency);
 
@@ -179,6 +179,9 @@ export default function ReportDetailScreen({ route }: any) {
           </TouchableOpacity>
           {showTip && (
             <View style={styles.tipForm}>
+              {report.country !== userCountry && (
+                <Text style={styles.conversionNote}>Reporter will receive equivalent in their local currency</Text>
+              )}
               <View style={styles.tipPresetsRow}>
                 {presets.map((amt) => (
                   <TouchableOpacity key={amt} style={styles.tipPresetBtn} onPress={() => handleTip(amt)}>
@@ -266,6 +269,7 @@ const styles = StyleSheet.create({
   tipPresetText: { fontSize: 14, fontWeight: '600', color: '#92400e' },
   buyPackBtn: { paddingVertical: 10, backgroundColor: '#f3f4f6', borderRadius: 8, alignItems: 'center' },
   buyPackText: { fontSize: 13, fontWeight: '600', color: theme.colors.primary },
+  conversionNote: { fontSize: 11, color: theme.colors.info, textAlign: 'center', marginBottom: 8, fontStyle: 'italic' },
   commentsBtn: { paddingVertical: 14, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: theme.colors.light.border, alignItems: 'center', marginBottom: 20 },
   commentsBtnText: { fontSize: 14, fontWeight: '600', color: theme.colors.primary },
   updatesSection: { marginTop: 4 },
