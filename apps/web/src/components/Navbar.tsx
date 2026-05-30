@@ -73,7 +73,7 @@ export default function Navbar() {
                 🚨 SOS
               </Link>
               <Link href="/profile/licenses" className="text-sm text-gray-500 hover:text-gray-700">Licenses</Link>
-              <span className="text-sm text-gray-500 hidden sm:inline">{user?.username}</span>
+              <Link href="/profile" className="text-sm font-medium text-gray-700 hover:text-[#0F7B6C] hidden sm:inline">{user?.username}</Link>
               <button onClick={logout} className="text-sm text-gray-500 hover:text-gray-700">Logout</button>
             </>
           ) : (

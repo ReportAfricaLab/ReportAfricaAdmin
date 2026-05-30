@@ -9,6 +9,7 @@ interface User {
   country: string;
   role: string;
   trustLevel: string;
+  trustScore?: number;
   avatar?: string;
 }
 
