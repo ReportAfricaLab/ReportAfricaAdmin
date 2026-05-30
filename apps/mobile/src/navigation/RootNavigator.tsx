@@ -20,6 +20,9 @@ import WatchlistScreen from '../screens/WatchlistScreen';
 import CommentsScreen from '../screens/CommentsScreen';
 import ReferralScreen from '../screens/ReferralScreen';
 import BuyTipPackScreen from '../screens/BuyTipPackScreen';
+import EarningsScreen from '../screens/EarningsScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
+import TrustProfileScreen from '../screens/TrustProfileScreen';
 import MainTabs from './MainTabs';
 
 const Stack = createNativeStackNavigator();
@@ -48,6 +51,9 @@ export default function RootNavigator() {
             <Stack.Screen name="Comments" component={CommentsScreen} options={{ headerShown: true, headerTitle: 'Comments', headerTintColor: '#0F7B6C' }} />
             <Stack.Screen name="Referral" component={ReferralScreen} options={{ headerShown: true, headerTitle: 'Referral', headerTintColor: '#0F7B6C' }} />
             <Stack.Screen name="BuyTipPack" component={BuyTipPackScreen} options={{ headerShown: true, headerTitle: 'Buy Tip Pack', headerTintColor: '#0F7B6C' }} />
+            <Stack.Screen name="Earnings" component={EarningsScreen} options={{ headerShown: true, headerTitle: 'My Earnings', headerTintColor: '#0F7B6C' }} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ headerShown: true, headerTitle: 'Notifications', headerTintColor: '#0F7B6C' }} />
+            <Stack.Screen name="TrustProfile" component={TrustProfileScreen} options={{ headerShown: true, headerTitle: 'Trust Profile', headerTintColor: '#0F7B6C' }} />
           </>
         ) : (
           <>

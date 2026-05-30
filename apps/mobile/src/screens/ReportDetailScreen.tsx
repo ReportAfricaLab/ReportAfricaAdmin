@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { reportsAPI, followsAPI, tipsAPI, reportUpdatesAPI } from '../services/api';
+import api from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { useI18n } from '../store/useI18n';
 import { theme } from '../theme';
@@ -49,6 +50,8 @@ export default function ReportDetailScreen({ route }: any) {
   const [showTip, setShowTip] = useState(false);
   const [tipBalance, setTipBalance] = useState(0);
   const [updateText, setUpdateText] = useState('');
+  const [verifyStats, setVerifyStats] = useState<any>(null);
+  const [verifyComment, setVerifyComment] = useState('');
 
   const currency = COUNTRY_CURRENCY[userCountry] || 'NGN';
   const symbol = CURRENCY_SYMBOLS[currency] || '₦';
@@ -58,6 +61,7 @@ export default function ReportDetailScreen({ route }: any) {
     reportsAPI.getById(id).then((res) => setReport(res.data)).finally(() => setLoading(false));
     reportUpdatesAPI.getByReport(id).then((res) => setUpdates(res.data?.data || [])).catch(() => {});
     tipsAPI.getBalance().then((res) => setTipBalance(res.data?.balance || 0)).catch(() => {});
+    api.get(`/reports/${id}/verify`).then((res) => setVerifyStats(res.data)).catch(() => {});
   }, [id]);
 
   useEffect(() => {
@@ -172,6 +176,40 @@ export default function ReportDetailScreen({ route }: any) {
 
       <Text style={styles.views}>👁️ {report.viewCount} views · 💬 {report.commentCount} comments</Text>
 
+      {/* Verification Section */}
+      <View style={styles.verifySection}>
+        <Text style={styles.verifySectionTitle}>🔍 Verify This Report</Text>
+        {verifyStats && (
+          <View style={styles.verifyStatsRow}>
+            <Text style={styles.verifyStatGreen}>✅ {verifyStats.confirms || 0} confirms</Text>
+            <Text style={styles.verifyStatRed}>❌ {verifyStats.disputes || 0} disputes</Text>
+            <Text style={styles.verifyStatScore}>{verifyStats.credibilityScore || 0}% credible</Text>
+          </View>
+        )}
+        <TextInput style={styles.verifyInput} value={verifyComment} onChangeText={setVerifyComment}
+          placeholder="Optional: why do you confirm/dispute?" maxLength={200} />
+        <View style={styles.verifyBtnRow}>
+          <TouchableOpacity style={styles.verifyConfirmBtn} onPress={async () => {
+            try {
+              const res = await api.post(`/reports/${id}/verify`, { vote: 'confirm', comment: verifyComment });
+              setVerifyStats(res.data); setVerifyComment('');
+              Alert.alert('Verified', 'You confirmed this report.');
+            } catch (e: any) { Alert.alert('Error', e?.response?.data?.message || 'Already voted'); }
+          }}>
+            <Text style={styles.verifyConfirmText}>✅ Confirm</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.verifyDisputeBtn} onPress={async () => {
+            try {
+              const res = await api.post(`/reports/${id}/verify`, { vote: 'dispute', comment: verifyComment });
+              setVerifyStats(res.data); setVerifyComment('');
+              Alert.alert('Disputed', 'You disputed this report.');
+            } catch (e: any) { Alert.alert('Error', e?.response?.data?.message || 'Already voted'); }
+          }}>
+            <Text style={styles.verifyDisputeText}>❌ Dispute</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Tip Reporter */}
       {!isAuthor && (
         <>
@@ -285,4 +323,16 @@ const styles = StyleSheet.create({
   updateText: { fontSize: 14, color: theme.colors.light.text, lineHeight: 20 },
   updateTime: { fontSize: 11, color: theme.colors.light.textSecondary, marginTop: 6 },
   noUpdates: { fontSize: 13, color: theme.colors.light.textSecondary, textAlign: 'center', paddingVertical: 12 },
+  verifySection: { backgroundColor: '#fff', padding: 14, borderRadius: 10, borderWidth: 1, borderColor: theme.colors.light.border, marginBottom: 16 },
+  verifySectionTitle: { fontSize: 14, fontWeight: '700', color: theme.colors.light.text, marginBottom: 8 },
+  verifyStatsRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  verifyStatGreen: { fontSize: 12, color: '#059669', fontWeight: '600' },
+  verifyStatRed: { fontSize: 12, color: '#dc2626', fontWeight: '600' },
+  verifyStatScore: { fontSize: 12, color: theme.colors.info, fontWeight: '600', marginLeft: 'auto' },
+  verifyInput: { borderWidth: 1, borderColor: theme.colors.light.border, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13, marginBottom: 10 },
+  verifyBtnRow: { flexDirection: 'row', gap: 10 },
+  verifyConfirmBtn: { flex: 1, paddingVertical: 10, backgroundColor: '#ecfdf5', borderRadius: 8, alignItems: 'center' },
+  verifyConfirmText: { fontSize: 13, fontWeight: '600', color: '#059669' },
+  verifyDisputeBtn: { flex: 1, paddingVertical: 10, backgroundColor: '#fef2f2', borderRadius: 8, alignItems: 'center' },
+  verifyDisputeText: { fontSize: 13, fontWeight: '600', color: '#dc2626' },
 });

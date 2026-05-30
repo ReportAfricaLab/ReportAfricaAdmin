@@ -122,6 +122,9 @@ export default function HomeScreen() {
           <TouchableOpacity style={styles.searchBtn} onPress={() => navigation.navigate('Search')}>
             <Text style={styles.searchBtnText}>🔍</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.searchBtn} onPress={() => navigation.navigate('Notifications')}>
+            <Text style={styles.searchBtnText}>🔔</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.electionBtn} onPress={() => navigation.navigate('Elections')}>
             <Text style={styles.electionBtnText}>🗳️</Text>
           </TouchableOpacity>

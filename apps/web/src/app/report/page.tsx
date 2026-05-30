@@ -37,12 +37,15 @@ function ReportContent() {
   const [tipCurrency, setTipCurrency] = useState('NGN');
   const [updates, setUpdates] = useState<any[]>([]);
   const [updateText, setUpdateText] = useState('');
+  const [verifyStats, setVerifyStats] = useState<any>(null);
+  const [verifyComment, setVerifyComment] = useState('');
 
   useEffect(() => {
     if (!id) return;
     api.reports.getById(id).then(setReport).finally(() => setLoading(false));
     api.comments.getByReport(id).then((data) => setComments(data.data || [])).catch(() => {});
     fetchAPI(`/report-updates/report/${id}`).then((data) => setUpdates(data.data || [])).catch(() => {});
+    fetchAPI(`/reports/${id}/verify`).then(setVerifyStats).catch(() => {});
     if (token) {
       fetchAPI('/tips/balance', { token }).then((data) => {
         setTipBalance(data.balance || 0);
@@ -197,6 +200,43 @@ function ReportContent() {
             </div>
             <p className="text-xs text-amber-600 text-center"><a href="/tip-packs" className="underline font-medium">Need more? Buy a tip pack →</a></p>
           </div>
+        )}
+      </div>
+
+      {/* Verification Section */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">🔍 Verify This Report</h2>
+        {verifyStats && (
+          <div className="flex items-center gap-4 mb-4 text-sm">
+            <span className="text-green-600 font-semibold">✅ {verifyStats.confirms || 0} confirms</span>
+            <span className="text-red-600 font-semibold">❌ {verifyStats.disputes || 0} disputes</span>
+            <span className="ml-auto text-blue-600 font-semibold">{verifyStats.credibilityScore || 0}% credible</span>
+          </div>
+        )}
+        {token && (
+          <>
+            <input value={verifyComment} onChange={(e) => setVerifyComment(e.target.value)}
+              placeholder="Optional: why do you confirm/dispute?" maxLength={200}
+              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mb-3 focus:outline-none focus:border-[#0F7B6C]" />
+            <div className="flex gap-3">
+              <button onClick={async () => {
+                try {
+                  const res = await fetchAPI(`/reports/${id}/verify`, { method: 'POST', body: JSON.stringify({ vote: 'confirm', comment: verifyComment }), token });
+                  setVerifyStats(res); setVerifyComment('');
+                } catch (e: any) { alert(e.message || 'Already voted'); }
+              }} className="flex-1 py-2.5 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100">
+                ✅ Confirm
+              </button>
+              <button onClick={async () => {
+                try {
+                  const res = await fetchAPI(`/reports/${id}/verify`, { method: 'POST', body: JSON.stringify({ vote: 'dispute', comment: verifyComment }), token });
+                  setVerifyStats(res); setVerifyComment('');
+                } catch (e: any) { alert(e.message || 'Already voted'); }
+              }} className="flex-1 py-2.5 bg-red-50 text-red-700 rounded-lg text-sm font-medium hover:bg-red-100">
+                ❌ Dispute
+              </button>
+            </div>
+          </>
         )}
       </div>
 

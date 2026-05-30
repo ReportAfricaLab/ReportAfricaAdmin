@@ -107,8 +107,11 @@ export default function Navbar() {
                     <div className="py-1">
                       {[
                         { href: '/profile', icon: '👤', label: 'My Profile' },
+                        { href: '/notifications', icon: '🔔', label: 'Notifications' },
+                        { href: '/earnings', icon: '💰', label: 'My Earnings' },
+                        { href: '/trust', icon: '🛡️', label: 'Trust Profile' },
                         { href: '/leaderboard', icon: '🏆', label: 'Leaderboard' },
-                        { href: '/tip-packs', icon: '💰', label: 'Tip Packs' },
+                        { href: '/tip-packs', icon: '💳', label: 'Tip Packs' },
                         { href: '/watchlist', icon: '📍', label: 'Watchlists' },
                         { href: '/referral', icon: '🎁', label: 'Referral' },
                         { href: '/profile/licenses', icon: '📄', label: 'Licenses' },
