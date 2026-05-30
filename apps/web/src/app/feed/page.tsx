@@ -86,7 +86,7 @@ export default function FeedPage() {
             <option key={c.code} value={c.code}>{c.name}</option>
           ))}
         </select>
-        <span className="text-xs text-gray-400">{t('nav.live', 'Live Reports')}</span>
+        <span className="text-xs text-gray-400">Live Reports</span>
       </div>
 
       {/* Category Filter */}
