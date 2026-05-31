@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image } from 'react-native';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
 import { authAPI } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { getCurrentLocation } from '../services/location';
 import { theme } from '../theme';
 import { COUNTRY_CONFIG } from '../constants';
+
+WebBrowser.maybeCompleteAuthSession();
+
+const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 export default function RegisterScreen({ navigation }: any) {
   const { setAuth } = useAppStore();
@@ -16,6 +22,29 @@ export default function RegisterScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
   const [latitude, setLatitude] = useState<number | undefined>();
   const [longitude, setLongitude] = useState<number | undefined>();
+
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: GOOGLE_CLIENT_ID,
+  });
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const idToken = response.params.id_token;
+      handleGoogleRegister(idToken);
+    }
+  }, [response]);
+
+  const handleGoogleRegister = async (idToken: string) => {
+    setLoading(true);
+    try {
+      const res = await authAPI.googleLogin({ idToken });
+      setAuth(res.data.user, res.data.token);
+    } catch (err: any) {
+      Alert.alert('Google Sign-In Failed', err.response?.data?.message || 'Something went wrong.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -77,14 +106,9 @@ export default function RegisterScreen({ navigation }: any) {
         <View style={styles.dividerLine} />
       </View>
 
-      <View style={styles.oauthRow}>
-        <TouchableOpacity style={styles.oauthBtn} onPress={() => Alert.alert('Google Sign-In', 'Configure expo-auth-session for Google OAuth')}>
-          <Text style={styles.oauthBtnText}>G  Google</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.oauthBtn, styles.oauthBtnApple]} onPress={() => Alert.alert('Apple Sign-In', 'Configure expo-apple-authentication')}>
-          <Text style={[styles.oauthBtnText, { color: '#fff' }]}>  Apple</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity style={styles.googleBtn} onPress={() => promptAsync()} disabled={!request || loading}>
+        <Text style={styles.googleBtnText}>G  Continue with Google</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation?.navigate('Login')}>
         <Text style={styles.link}>Already have an account? <Text style={styles.linkBold}>Sign In</Text></Text>
@@ -104,17 +128,15 @@ const styles = StyleSheet.create({
   countryChipActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
   countryChipText: { fontSize: theme.fontSize.xs, color: theme.colors.light.textSecondary },
   countryChipTextActive: { color: '#fff', fontWeight: '600' },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: theme.colors.light.border, borderRadius: theme.borderRadius.sm, padding: 14, fontSize: theme.fontSize.md, marginBottom: 12 },
-  btn: { backgroundColor: theme.colors.primary, paddingVertical: 16, borderRadius: theme.borderRadius.sm, alignItems: 'center', marginTop: 12 },
+  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: theme.colors.light.border, borderRadius: theme.borderRadius.sm, padding: 14, fontSize: theme.fontSize.md, marginBottom: 12, width: '100%' },
+  btn: { backgroundColor: theme.colors.primary, paddingVertical: 16, borderRadius: theme.borderRadius.sm, alignItems: 'center', marginTop: 12, width: '100%' },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#fff', fontSize: theme.fontSize.md, fontWeight: '700' },
   link: { textAlign: 'center', marginTop: 24, fontSize: theme.fontSize.sm, color: theme.colors.light.textSecondary, marginBottom: 40 },
   linkBold: { color: theme.colors.primary, fontWeight: '600' },
-  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
+  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 16, width: '100%' },
   dividerLine: { flex: 1, height: 1, backgroundColor: theme.colors.light.border },
   dividerText: { marginHorizontal: 12, fontSize: 12, color: theme.colors.light.textSecondary },
-  oauthRow: { flexDirection: 'row', gap: 12 },
-  oauthBtn: { flex: 1, paddingVertical: 14, borderRadius: theme.borderRadius.sm, alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: theme.colors.light.border },
-  oauthBtnApple: { backgroundColor: '#000', borderColor: '#000' },
-  oauthBtnText: { fontSize: 14, fontWeight: '600', color: theme.colors.light.text },
+  googleBtn: { paddingVertical: 14, borderRadius: theme.borderRadius.sm, alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: theme.colors.light.border, width: '100%' },
+  googleBtnText: { fontSize: 14, fontWeight: '600', color: theme.colors.light.text },
 });

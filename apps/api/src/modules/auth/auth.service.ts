@@ -90,12 +90,19 @@ export class AuthService {
   private async verifyOAuthToken(provider: string, token: string): Promise<{ email: string; name?: string } | null> {
     try {
       if (provider === 'google') {
-        const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
-        const data = await res.json();
+        // Try as ID token first
+        let res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
+        let data = await res.json();
+        if (data.email) return { email: data.email, name: data.name };
+
+        // Fallback: try as access token
+        res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        data = await res.json();
         if (data.email) return { email: data.email, name: data.name };
       }
       if (provider === 'apple') {
-        // Apple token verification — decode JWT payload
         const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
         if (payload.email) return { email: payload.email, name: payload.name };
       }
