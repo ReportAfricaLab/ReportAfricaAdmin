@@ -4,7 +4,7 @@ import { useAppStore } from '../store/useAppStore';
 import { theme } from '../theme';
 import axios from 'axios';
 
-const API_URL = 'http://10.162.41.17:3001/api/v1';
+const API_URL = __DEV__ ? 'http://10.162.41.17:3001/api/v1' : 'https://api.reportafrica.com/api/v1';
 
 interface Campaign {
   id: string;

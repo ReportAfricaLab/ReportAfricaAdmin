@@ -17,10 +17,19 @@ export default function GovDashboard() {
         </div>
         <select value={country} onChange={(e) => setCountry(e.target.value)}
           className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none">
-          <option value="NG">Nigeria</option>
-          <option value="GH">Ghana</option>
-          <option value="KE">Kenya</option>
-          <option value="ZA">South Africa</option>
+          {[
+            { code: 'NG', name: 'Nigeria' }, { code: 'GH', name: 'Ghana' }, { code: 'KE', name: 'Kenya' },
+            { code: 'ZA', name: 'South Africa' }, { code: 'UG', name: 'Uganda' }, { code: 'RW', name: 'Rwanda' },
+            { code: 'TZ', name: 'Tanzania' }, { code: 'ET', name: 'Ethiopia' }, { code: 'SN', name: 'Senegal' },
+            { code: 'CM', name: 'Cameroon' }, { code: 'EG', name: 'Egypt' }, { code: 'MA', name: 'Morocco' },
+            { code: 'DZ', name: 'Algeria' }, { code: 'TN', name: 'Tunisia' }, { code: 'CI', name: "Côte d'Ivoire" },
+            { code: 'AO', name: 'Angola' }, { code: 'MZ', name: 'Mozambique' }, { code: 'CD', name: 'DR Congo' },
+            { code: 'SD', name: 'Sudan' }, { code: 'LY', name: 'Libya' }, { code: 'ZW', name: 'Zimbabwe' },
+            { code: 'ZM', name: 'Zambia' }, { code: 'MW', name: 'Malawi' }, { code: 'BJ', name: 'Benin' },
+            { code: 'TG', name: 'Togo' }, { code: 'ML', name: 'Mali' }, { code: 'BF', name: 'Burkina Faso' },
+            { code: 'NE', name: 'Niger' }, { code: 'SL', name: 'Sierra Leone' }, { code: 'LR', name: 'Liberia' },
+            { code: 'SO', name: 'Somalia' }, { code: 'MG', name: 'Madagascar' },
+          ].map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
         </select>
       </div>
 

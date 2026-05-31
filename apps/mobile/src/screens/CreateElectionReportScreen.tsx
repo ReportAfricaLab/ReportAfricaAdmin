@@ -8,7 +8,7 @@ import { theme } from '../theme';
 import axios from 'axios';
 import { livestreamAPI } from '../services/api';
 
-const API_URL = 'http://10.162.41.17:3001/api/v1';
+const API_URL = __DEV__ ? 'http://10.162.41.17:3001/api/v1' : 'https://api.reportafrica.com/api/v1';
 
 const REPORT_TYPES = [
   { key: 'result_upload', label: '📊 Results' },
