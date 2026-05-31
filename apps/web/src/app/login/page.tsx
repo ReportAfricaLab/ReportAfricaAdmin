@@ -35,17 +35,36 @@ export default function LoginPage() {
       if (provider === 'google' && typeof window !== 'undefined') {
         const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
         if (!googleClientId) { setError('Google OAuth not configured'); setLoading(false); return; }
-        // Use Google Identity Services popup
-        const google = (window as any).google;
-        if (!google?.accounts?.id) {
-          // Load GIS script dynamically
-          const script = document.createElement('script');
-          script.src = 'https://accounts.google.com/gsi/client';
-          script.onload = () => initGoogleSignIn(googleClientId);
-          document.head.appendChild(script);
-        } else {
-          initGoogleSignIn(googleClientId);
-        }
+
+        // Use OAuth2 popup flow (works even if user isn't signed into Google)
+        const width = 500, height = 600;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
+        const redirectUri = window.location.origin + '/api/auth/callback/google';
+        const scope = 'openid email profile';
+        const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token+id_token&scope=${encodeURIComponent(scope)}&nonce=${Date.now()}`;
+
+        const popup = window.open(url, 'google-signin', `width=${width},height=${height},left=${left},top=${top}`);
+
+        // Listen for the popup to redirect back with token
+        const interval = setInterval(() => {
+          try {
+            if (!popup || popup.closed) { clearInterval(interval); setLoading(false); return; }
+            if (popup.location.href.includes(window.location.origin)) {
+              const hash = popup.location.hash;
+              popup.close();
+              clearInterval(interval);
+              const params = new URLSearchParams(hash.substring(1));
+              const idToken = params.get('id_token');
+              if (idToken) {
+                handleGoogleToken(idToken);
+              } else {
+                setError('No token received from Google');
+                setLoading(false);
+              }
+            }
+          } catch { /* cross-origin — popup hasn't redirected yet */ }
+        }, 500);
         return;
       }
       setError(`${provider} sign-in not available`);
@@ -56,23 +75,15 @@ export default function LoginPage() {
     }
   };
 
-  const initGoogleSignIn = (clientId: string) => {
-    const google = (window as any).google;
-    google.accounts.id.initialize({
-      client_id: clientId,
-      callback: async (response: any) => {
-        if (response.credential) {
-          try {
-            const data = await api.auth.oauth('google', response.credential);
-            login(data.user, data.token);
-            router.push('/feed');
-          } catch (err: any) {
-            setError(err.message || 'Google sign-in failed');
-          }
-        }
-      },
-    });
-    google.accounts.id.prompt();
+  const handleGoogleToken = async (idToken: string) => {
+    try {
+      const data = await api.auth.oauth('google', idToken);
+      login(data.user, data.token);
+      router.push('/feed');
+    } catch (err: any) {
+      setError(err.message || 'Google sign-in failed');
+      setLoading(false);
+    }
   };
 
   return (

@@ -13,6 +13,11 @@ const CATEGORIES = [
   { key: 'emergency', label: '🚨 Emergency' },
   { key: 'environmental', label: '🌍 Environmental' },
   { key: 'market_consumer', label: '🛒 Market & Consumer' },
+  { key: 'gender_violence', label: '⚠️ Gender-Based Violence' },
+  { key: 'health', label: '🏥 Health & Disease' },
+  { key: 'corruption', label: '💸 Corruption & Bribery' },
+  { key: 'utilities', label: '⚡ Utilities & Services' },
+  { key: 'missing_persons', label: '🔍 Missing Persons' },
 ];
 
 export default function CreateReportPage() {

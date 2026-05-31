@@ -47,6 +47,11 @@ const CATEGORIES = [
   { key: 'election', label: '🗳️ Election' },
   { key: 'emergency', label: '🚨 Emergency' },
   { key: 'environmental', label: '🌍 Environment' },
+  { key: 'gender_violence', label: '⚠️ GBV' },
+  { key: 'health', label: '🏥 Health' },
+  { key: 'corruption', label: '💸 Corruption' },
+  { key: 'utilities', label: '⚡ Utilities' },
+  { key: 'missing_persons', label: '🔍 Missing' },
 ];
 
 export default function FeedPage() {

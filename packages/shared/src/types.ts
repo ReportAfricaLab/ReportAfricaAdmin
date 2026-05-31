@@ -16,6 +16,11 @@ export enum ReportCategory {
   EMERGENCY = 'emergency',
   ENVIRONMENTAL = 'environmental',
   MARKET_CONSUMER = 'market_consumer',
+  GENDER_VIOLENCE = 'gender_violence',
+  HEALTH = 'health',
+  CORRUPTION = 'corruption',
+  UTILITIES = 'utilities',
+  MISSING_PERSONS = 'missing_persons',
 }
 
 export enum ReportSeverity {

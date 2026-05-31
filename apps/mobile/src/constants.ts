@@ -42,4 +42,9 @@ export const REPORT_CATEGORY_LABELS: Record<string, string> = {
   emergency: 'Community Emergency',
   environmental: 'Environmental',
   market_consumer: 'Market & Consumer',
+  gender_violence: 'Gender-Based Violence',
+  health: 'Health & Disease',
+  corruption: 'Corruption & Bribery',
+  utilities: 'Utilities & Services',
+  missing_persons: 'Missing Persons',
 };

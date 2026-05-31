@@ -14,8 +14,6 @@ config.resolver.nodeModulesPaths = [
 config.resolver.disableHierarchicalLookup = false;
 
 // Fix socket.io-client / engine.io-client module resolution for Metro
-config.resolver.unstable_enablePackageExports = true;
-config.resolver.unstable_conditionNames = ['browser', 'require', 'react-native'];
 config.resolver.sourceExts = [...(config.resolver.sourceExts || []), 'cjs'];
 
 // Fix Sentry internal module resolution — Metro with package exports
