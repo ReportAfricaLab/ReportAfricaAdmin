@@ -49,17 +49,16 @@ export default function CreateReportPage() {
     setError('');
     try {
       // Upload media files first
-      const mediaUrls: string[] = [];
-      for (const media of mediaFiles) {
+      const media: { type: string; url: string }[] = [];
+      for (const m of mediaFiles) {
         try {
-          const fileType = media.type.startsWith('video') ? 'video' : 'image';
-          const { uploadUrl, fileUrl } = await api.upload.getPresignedUrl(token, fileType, media.file.type);
-          await fetch(uploadUrl, { method: 'PUT', body: media.file, headers: { 'Content-Type': media.file.type } });
-          // Use blurred URL if available
-          mediaUrls.push(media.blurredUrl || fileUrl);
+          const fileType = m.type.startsWith('video') ? 'video' : 'image';
+          const { uploadUrl, fileUrl } = await api.upload.getPresignedUrl(token, fileType, m.file.type);
+          await fetch(uploadUrl, { method: 'PUT', body: m.file, headers: { 'Content-Type': m.file.type } });
+          media.push({ type: fileType, url: m.blurredUrl || fileUrl });
         } catch {}
       }
-      await api.reports.create(token, { ...form, ...location, mediaUrls });
+      await api.reports.create(token, { ...form, ...location, media });
       router.push('/feed');
     } catch (err: any) {
       setError(err.message || 'Failed to submit report');

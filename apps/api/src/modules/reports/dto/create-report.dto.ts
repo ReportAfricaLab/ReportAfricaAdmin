@@ -10,7 +10,7 @@ export class CreateReportDto {
   description: string;
 
   @IsString()
-  @IsIn(['traffic', 'police_security', 'government', 'construction', 'election', 'emergency', 'environmental', 'market_consumer'])
+  @IsIn(['traffic', 'police_security', 'government', 'construction', 'election', 'emergency', 'environmental', 'market_consumer', 'gender_violence', 'health', 'corruption', 'utilities', 'missing_persons'])
   category: string;
 
   @IsString()
