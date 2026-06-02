@@ -14,6 +14,7 @@ export default function LoginScreen({ navigation }: any) {
   const { setAuth } = useAppStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
@@ -55,6 +56,25 @@ export default function LoginScreen({ navigation }: any) {
     }
   };
 
+  const handleForgotPassword = () => {
+    Alert.prompt(
+      'Reset Password',
+      'Enter your email address',
+      async (inputEmail) => {
+        if (!inputEmail) return;
+        try {
+          await authAPI.forgotPassword(inputEmail);
+          Alert.alert('Check your email', 'If an account with that email exists, we\'ve sent a reset link.');
+        } catch {
+          Alert.alert('Check your email', 'If an account with that email exists, we\'ve sent a reset link.');
+        }
+      },
+      'plain-text',
+      email,
+      'email-address'
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -64,7 +84,18 @@ export default function LoginScreen({ navigation }: any) {
 
       <View style={styles.form}>
         <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="Email address" keyboardType="email-address" autoCapitalize="none" />
-        <TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry />
+
+        <View style={styles.passwordRow}>
+          <TextInput style={styles.passwordInput} value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry={!showPassword} />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
+            <Text style={styles.eyeText}>{showPassword ? '🙈' : '👁️'}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity onPress={handleForgotPassword}>
+          <Text style={styles.forgotText}>Forgot password?</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity style={[styles.btn, loading && styles.btnDisabled]} onPress={handleLogin} disabled={loading}>
           <Text style={styles.btnText}>{loading ? 'Signing in...' : 'Sign In'}</Text>
         </TouchableOpacity>
@@ -94,6 +125,11 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: theme.fontSize.md, color: theme.colors.light.textSecondary, marginTop: 8 },
   form: { gap: 14 },
   input: { backgroundColor: '#fff', borderWidth: 1, borderColor: theme.colors.light.border, borderRadius: theme.borderRadius.sm, padding: 14, fontSize: theme.fontSize.md },
+  passwordRow: { flexDirection: 'row', alignItems: 'center' },
+  passwordInput: { flex: 1, backgroundColor: '#fff', borderWidth: 1, borderColor: theme.colors.light.border, borderRadius: theme.borderRadius.sm, padding: 14, fontSize: theme.fontSize.md },
+  eyeBtn: { position: 'absolute', right: 14, padding: 4 },
+  eyeText: { fontSize: 18 },
+  forgotText: { color: theme.colors.primary, fontSize: theme.fontSize.sm, textAlign: 'right' },
   btn: { backgroundColor: theme.colors.primary, paddingVertical: 16, borderRadius: theme.borderRadius.sm, alignItems: 'center', marginTop: 8 },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#fff', fontSize: theme.fontSize.md, fontWeight: '700' },

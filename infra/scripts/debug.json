@@ -1,0 +1,7 @@
+{
+  "commands": [
+    "docker ps -a",
+    "docker logs reportafrica-api --tail 20 2>&1 || echo 'NO CONTAINER'",
+    "cat /home/ec2-user/.env.production 2>&1 || echo 'NO ENV FILE'"
+  ]
+}

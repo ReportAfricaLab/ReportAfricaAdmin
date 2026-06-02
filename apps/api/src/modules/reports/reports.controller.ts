@@ -1,14 +1,18 @@
 import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Throttle } from '@nestjs/throttler';
 import { ReportsService } from './reports.service';
 import { CreateReportDto } from './dto/create-report.dto';
+import { StrictThrottlerGuard } from '../../common/guards/throttle.guard';
 
 @Controller('reports')
+@UseGuards(StrictThrottlerGuard)
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @UseGuards(AuthGuard('jwt'))
   @Post()
+  @Throttle({ short: { ttl: 60000, limit: 5 } })
   create(@Request() req: any, @Body() dto: CreateReportDto) {
     return this.reportsService.create(req.user.id, req.user.country, dto);
   }
@@ -63,12 +67,14 @@ export class ReportsController {
 
   @UseGuards(AuthGuard('jwt'))
   @Patch(':id/upvote')
+  @Throttle({ short: { ttl: 60000, limit: 10 } })
   upvote(@Param('id') id: string) {
     return this.reportsService.upvote(id);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Patch(':id/downvote')
+  @Throttle({ short: { ttl: 60000, limit: 10 } })
   downvote(@Param('id') id: string) {
     return this.reportsService.downvote(id);
   }

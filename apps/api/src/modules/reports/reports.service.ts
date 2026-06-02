@@ -74,7 +74,19 @@ export class ReportsService {
   }
 
   async findById(id: string): Promise<ReportEntity | null> {
-    return this.reportRepo.findOne({ where: { id }, relations: ['author'] });
+    const cacheKey = `report:${id}`;
+    if (this.cache) {
+      const cached = await this.cache.get<ReportEntity>(cacheKey);
+      if (cached) return cached;
+    }
+
+    const report = await this.reportRepo.findOne({ where: { id }, relations: ['author'] });
+
+    if (this.cache && report) {
+      await this.cache.set(cacheKey, report, 30000);
+    }
+
+    return report;
   }
 
   async getFeed(country: string, page = 1, limit = 20, lat?: number, lng?: number, sort?: string) {
@@ -207,6 +219,12 @@ export class ReportsService {
   }
 
   async getByCategory(country: string, category: string, page = 1, limit = 20) {
+    const cacheKey = `category:${country}:${category}:${page}:${limit}`;
+    if (this.cache) {
+      const cached = await this.cache.get<{ data: ReportEntity[]; meta: any }>(cacheKey);
+      if (cached) return cached;
+    }
+
     const [data, total] = await this.reportRepo.findAndCount({
       where: { country, category },
       order: { createdAt: 'DESC' },
@@ -215,10 +233,16 @@ export class ReportsService {
       relations: ['author'],
     });
 
-    return {
+    const result = {
       data,
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
+
+    if (this.cache) {
+      await this.cache.set(cacheKey, result, 60000);
+    }
+
+    return result;
   }
 
   async upvote(id: string) {

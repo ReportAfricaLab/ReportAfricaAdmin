@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // For Android emulator use 10.0.2.2, for physical device use your computer's IP (run: ipconfig | findstr IPv4)
 const LOCAL_IP = '10.162.41.17';
-const API_BASE_URL = __DEV__ ? `http://${LOCAL_IP}:3001/api/v1` : 'https://api.reportafrica.com/api/v1';
-export const WS_URL = __DEV__ ? `http://${LOCAL_IP}:3001` : 'https://api.reportafrica.com';
+const API_BASE_URL = __DEV__ ? `http://${LOCAL_IP}:3001/api/v1` : 'https://34-242-14-140.nip.io/api/v1';
+export const WS_URL = __DEV__ ? `http://${LOCAL_IP}:3001` : 'https://34-242-14-140.nip.io';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -25,7 +25,7 @@ export const setAuthToken = (token: string | null) => {
 export const getAuthToken = () => authToken;
 
 export const authAPI = {
-  register: (data: { email: string; username: string; displayName: string; password: string; country: string; latitude?: number; longitude?: number }) =>
+  register: (data: { email: string; username: string; displayName: string; password: string; country: string; phone?: string; latitude?: number; longitude?: number }) =>
     api.post('/auth/register', data),
   login: (data: { email: string; password: string }) =>
     api.post('/auth/login', data),
@@ -33,6 +33,10 @@ export const authAPI = {
     api.post('/auth/google', data),
   appleLogin: (data: { identityToken: string; fullName?: string }) =>
     api.post('/auth/apple', data),
+  forgotPassword: (email: string) =>
+    api.post('/auth/forgot-password', { email }),
+  resetPassword: (token: string, newPassword: string) =>
+    api.post('/auth/reset-password', { token, newPassword }),
 };
 
 export const usersAPI = {
