@@ -87,15 +87,15 @@ export default function Navbar() {
         <div className="flex items-center gap-2 sm:gap-3">
           {isAuthenticated ? (
             <>
-              <Link href="/create-report" className="hidden sm:inline-flex px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-[#D92D20] rounded-lg hover:bg-red-700 transition">
+              <Link href="/create-report" className="px-3 py-2 text-xs font-semibold text-white bg-[#D92D20] rounded-lg hover:bg-red-700 transition">
                 + Report
               </Link>
-              <Link href="/emergency" className="hidden sm:inline-flex px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-[#D92D20] border border-[#D92D20] rounded-lg hover:bg-red-50 transition">
+              <Link href="/emergency" className="px-2 py-2 text-xs font-semibold text-[#D92D20] border border-[#D92D20] rounded-lg hover:bg-red-50 transition">
                 🚨 SOS
               </Link>
 
-              {/* Profile Dropdown */}
-              <div className="relative" ref={dropdownRef}>
+              {/* Desktop Profile Dropdown */}
+              <div className="hidden lg:block relative" ref={dropdownRef}>
                 <button onClick={() => setShowDropdown(!showDropdown)}
                   className="flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-full hover:bg-gray-100 transition">
                   <div className="w-8 h-8 rounded-full bg-[#0F7B6C] flex items-center justify-center text-white text-sm font-bold">
@@ -135,17 +135,6 @@ export default function Navbar() {
                         </Link>
                       ))}
                     </div>
-                    {/* Mobile-only links */}
-                    <div className="lg:hidden border-t border-gray-100 dark:border-gray-700 py-1">
-                      <Link href="/create-report" onClick={() => setShowDropdown(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#D92D20] font-medium hover:bg-red-50 transition">
-                        <span>📝</span><span>Create Report</span>
-                      </Link>
-                      <Link href="/emergency" onClick={() => setShowDropdown(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#D92D20] font-medium hover:bg-red-50 transition">
-                        <span>🚨</span><span>Emergency SOS</span>
-                      </Link>
-                    </div>
                     <div className="border-t border-gray-100 dark:border-gray-700 pt-1">
                       <button onClick={() => { logout(); setShowDropdown(false); }}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition w-full text-left">
@@ -182,7 +171,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu — includes nav links + profile */}
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B]">
           <nav className="flex flex-col px-4 py-3 space-y-1">
@@ -193,6 +182,45 @@ export default function Navbar() {
               </Link>
             ))}
           </nav>
+
+          {/* Profile section inside mobile menu */}
+          {isAuthenticated && (
+            <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-3">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 rounded-full bg-[#0F7B6C] flex items-center justify-center text-white text-sm font-bold">
+                  {user?.username?.[0]?.toUpperCase() || '?'}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{user?.username}</p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: trustInfo.color }} />
+                    <span className="text-[10px] font-medium" style={{ color: trustInfo.color }}>{trustInfo.label}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                {[
+                  { href: '/profile', icon: '👤', label: 'My Profile' },
+                  { href: '/notifications', icon: '🔔', label: 'Notifications' },
+                  { href: '/earnings', icon: '💰', label: 'My Earnings' },
+                  { href: '/trust', icon: '🛡️', label: 'Trust Profile' },
+                  { href: '/leaderboard', icon: '🏆', label: 'Leaderboard' },
+                  { href: '/tip-packs', icon: '💳', label: 'Tip Packs' },
+                  { href: '/watchlist', icon: '📍', label: 'Watchlists' },
+                  { href: '/referral', icon: '🎁', label: 'Referral' },
+                ].map((item) => (
+                  <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 py-2.5 px-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition">
+                    <span>{item.icon}</span><span>{item.label}</span>
+                  </Link>
+                ))}
+              </div>
+              <button onClick={() => { logout(); setMobileMenuOpen(false); }}
+                className="flex items-center gap-3 py-2.5 px-3 mt-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition w-full">
+                <span>🚪</span><span>Sign Out</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
     </header>

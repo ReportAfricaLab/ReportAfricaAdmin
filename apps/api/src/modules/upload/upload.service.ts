@@ -60,6 +60,7 @@ export class UploadService {
     switch (fileType) {
       case 'image': return 'images';
       case 'video': return 'videos';
+      case 'audio':
       case 'voice_note': return 'audio';
       case 'document': return 'documents';
       default: return 'uploads';
@@ -75,6 +76,9 @@ export class UploadService {
       'video/quicktime': '.mov',
       'audio/mpeg': '.mp3',
       'audio/m4a': '.m4a',
+      'audio/webm': '.webm',
+      'audio/ogg': '.ogg',
+      'audio/wav': '.wav',
       'application/pdf': '.pdf',
     };
     return map[contentType] || '.bin';

@@ -95,16 +95,20 @@ export default function CreateReportPage() {
           // Upload audio to S3
           const { uploadUrl, fileUrl } = await api.upload.getPresignedUrl(token!, 'audio', 'audio/webm');
           await fetch(uploadUrl, { method: 'PUT', body: blob, headers: { 'Content-Type': 'audio/webm' } });
-          // Transcribe
+          // Transcribe - pass the S3 URI
+          const s3Key = fileUrl.split('.com/')[1] || fileUrl;
+          const s3Uri = `s3://reportafrica-media-prod/${s3Key}`;
           const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
           const res = await fetch(`${API_URL}/voice/transcribe`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ audioUrl: fileUrl }),
+            body: JSON.stringify({ audioUrl: s3Uri }),
           });
           const data = await res.json();
           if (data.originalText) {
             update('description', form.description + (form.description ? '\n' : '') + data.originalText);
+          } else {
+            setError('Could not transcribe audio. Try again or type manually.');
           }
         } catch { setError('Voice transcription failed'); }
         setTranscribing(false);
