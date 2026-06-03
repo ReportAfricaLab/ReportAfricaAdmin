@@ -8,6 +8,11 @@ class TranscribeDto {
   @IsString() @IsOptional() language?: string;
 }
 
+class TranslateDto {
+  @IsString() text: string;
+  @IsString() @IsOptional() targetLanguage?: string;
+}
+
 @Controller('voice')
 export class VoiceController {
   constructor(private readonly service: VoiceService) {}
@@ -16,5 +21,11 @@ export class VoiceController {
   @Post('transcribe')
   transcribe(@Body() dto: TranscribeDto) {
     return this.service.processVoiceNote(dto.audioUrl, dto.language || 'en');
+  }
+
+  @Post('translate')
+  async translate(@Body() dto: TranslateDto) {
+    const translated = await this.service.translateToEnglish(dto.text, dto.targetLanguage || 'auto');
+    return { originalText: dto.text, translatedText: translated };
   }
 }

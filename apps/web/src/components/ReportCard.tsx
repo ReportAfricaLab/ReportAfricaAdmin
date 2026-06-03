@@ -4,6 +4,7 @@ import Link from 'next/link';
 interface Report {
   id: string;
   title: string;
+  aiHeadline?: string;
   description: string;
   category: string;
   severity: string;
@@ -56,7 +57,7 @@ export default function ReportCard({ report }: { report: Report }) {
         <span className="text-xs text-gray-400 ml-auto">{timeAgo(report.createdAt)}</span>
       </div>
 
-      <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">{report.title}</h3>
+      <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">{report.aiHeadline || report.title}</h3>
       <p className="text-sm text-gray-500 line-clamp-2 mb-3">{report.description}</p>
 
       <div className="flex items-center justify-between text-xs text-gray-400">

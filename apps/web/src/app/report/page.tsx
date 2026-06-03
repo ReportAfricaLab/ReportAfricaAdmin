@@ -39,6 +39,8 @@ function ReportContent() {
   const [updateText, setUpdateText] = useState('');
   const [verifyStats, setVerifyStats] = useState<any>(null);
   const [verifyComment, setVerifyComment] = useState('');
+  const [translatedText, setTranslatedText] = useState('');
+  const [translating, setTranslating] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -132,8 +134,24 @@ function ReportContent() {
           </span>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">{report.title}</h1>
-        <p className="text-gray-600 leading-relaxed mb-6">{report.description}</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-3">{report.aiHeadline || report.title}</h1>
+        <p className="text-gray-600 leading-relaxed mb-3">{translatedText || report.description}</p>
+        <button type="button" onClick={async () => {
+          if (translatedText) { setTranslatedText(''); return; }
+          setTranslating(true);
+          try {
+            const res = await fetch(`${API_URL}/voice/translate`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: report.description, targetLanguage: 'en' }),
+            });
+            const data = await res.json();
+            setTranslatedText(data.translatedText || report.description);
+          } catch { }
+          setTranslating(false);
+        }} className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-medium mb-6">
+          {translating ? '⏳ Translating...' : translatedText ? '↩️ Show original' : '🌐 Translate'}
+        </button>
 
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 p-3 bg-gray-50 rounded-lg">
           <span>📍</span>

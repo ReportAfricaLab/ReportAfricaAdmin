@@ -28,8 +28,11 @@ export default function CreateReportPage() {
   const [mediaFiles, setMediaFiles] = useState<{ file: File; preview: string; type: string; blurredUrl?: string; blurring?: boolean; s3Key?: string }[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) router.push('/login');
@@ -68,6 +71,51 @@ export default function CreateReportPage() {
   };
 
   const update = (field: string, value: any) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleVoiceRecord = async () => {
+    if (recording) {
+      // Stop recording
+      mediaRecorderRef.current?.stop();
+      setRecording(false);
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      const chunks: Blob[] = [];
+
+      mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        setTranscribing(true);
+        try {
+          const blob = new Blob(chunks, { type: 'audio/webm' });
+          // Upload audio to S3
+          const { uploadUrl, fileUrl } = await api.upload.getPresignedUrl(token!, 'audio', 'audio/webm');
+          await fetch(uploadUrl, { method: 'PUT', body: blob, headers: { 'Content-Type': 'audio/webm' } });
+          // Transcribe
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+          const res = await fetch(`${API_URL}/voice/transcribe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ audioUrl: fileUrl }),
+          });
+          const data = await res.json();
+          if (data.originalText) {
+            update('description', form.description + (form.description ? '\n' : '') + data.originalText);
+          }
+        } catch { setError('Voice transcription failed'); }
+        setTranscribing(false);
+      };
+
+      mediaRecorder.start();
+      setRecording(true);
+    } catch {
+      setError('Microphone access denied');
+    }
+  };
 
   const handleMediaAdd = (files: FileList | null) => {
     if (!files) return;
@@ -164,6 +212,10 @@ export default function CreateReportPage() {
           <textarea value={form.description} onChange={(e) => update('description', e.target.value)} required maxLength={5000} rows={5}
             className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#0F7B6C] focus:border-transparent outline-none resize-none"
             placeholder="Describe what is happening in detail..." />
+          <button type="button" onClick={handleVoiceRecord} disabled={transcribing}
+            className={`mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${recording ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'} disabled:opacity-50`}>
+            {transcribing ? '⏳ Transcribing...' : recording ? '⏹️ Stop Recording' : '🎤 Voice to Text'}
+          </button>
         </div>
 
         {/* Severity */}
