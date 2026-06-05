@@ -1,0 +1,6 @@
+{
+  "commands": [
+    "cd /home/ec2-user/reportafrica && npm ci --workspace=@reportafrica/api --workspace=@reportafrica/shared --include-workspace-root 2>&1 | tail -5",
+    "cd /home/ec2-user/reportafrica && npm run build --workspace=@reportafrica/api 2>&1 | tail -30"
+  ]
+}

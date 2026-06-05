@@ -54,6 +54,6 @@ export class UsersService {
   }
 
   async updatePassword(id: string, hashedPassword: string): Promise<void> {
-    await this.userRepo.update(id, { password: hashedPassword, passwordResetToken: null, passwordResetExpires: null });
+    await this.userRepo.update(id, { password: hashedPassword, passwordResetToken: undefined as any, passwordResetExpires: undefined as any });
   }
 }

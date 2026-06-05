@@ -53,7 +53,7 @@ export class VoiceService {
     try {
       await this.transcribeClient.send(new StartTranscriptionJobCommand({
         TranscriptionJobName: jobName,
-        LanguageCode: languageCode,
+        LanguageCode: languageCode as any,
         Media: { MediaFileUri: audioUrl },
         OutputBucketName: this.s3Bucket,
         OutputKey: `transcriptions/${jobName}.json`,
