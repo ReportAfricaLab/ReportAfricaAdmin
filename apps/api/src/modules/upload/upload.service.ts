@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import * as crypto from 'crypto';
 
 export interface PresignedUrlResult {
@@ -13,14 +15,20 @@ export class UploadService {
   private readonly logger = new Logger(UploadService.name);
   private readonly bucket: string;
   private readonly region: string;
-  private readonly accessKeyId: string;
-  private readonly secretAccessKey: string;
+  private readonly s3Client: S3Client | null;
 
   constructor(private readonly config: ConfigService) {
-    this.bucket = this.config.get('AWS_S3_BUCKET', 'reportafrica-media');
-    this.region = this.config.get('AWS_REGION', 'af-south-1');
-    this.accessKeyId = this.config.get('AWS_ACCESS_KEY_ID', '');
-    this.secretAccessKey = this.config.get('AWS_SECRET_ACCESS_KEY', '');
+    this.bucket = this.config.get('AWS_S3_BUCKET', 'reportafrica-media-prod');
+    this.region = this.config.get('AWS_REGION', 'eu-west-1');
+
+    const accessKeyId = this.config.get('AWS_ACCESS_KEY_ID', '');
+    const secretAccessKey = this.config.get('AWS_SECRET_ACCESS_KEY', '');
+
+    if (accessKeyId && secretAccessKey) {
+      this.s3Client = new S3Client({ region: this.region, credentials: { accessKeyId, secretAccessKey } });
+    } else {
+      this.s3Client = null;
+    }
   }
 
   async getPresignedUploadUrl(userId: string, fileType: string, contentType: string): Promise<PresignedUrlResult> {
@@ -28,27 +36,22 @@ export class UploadService {
     const folder = this.getFolder(fileType);
     const key = `${folder}/${userId}/${Date.now()}_${crypto.randomBytes(4).toString('hex')}${ext}`;
 
-    // Generate presigned URL using AWS Signature V4
-    const expires = 3600;
-    const date = new Date();
-    const dateStr = date.toISOString().replace(/[:-]|\.\d{3}/g, '').substring(0, 8);
-    const credential = `${this.accessKeyId}/${dateStr}/${this.region}/s3/aws4_request`;
-
-    const policy = Buffer.from(JSON.stringify({
-      expiration: new Date(Date.now() + expires * 1000).toISOString(),
-      conditions: [
-        { bucket: this.bucket },
-        { key },
-        ['content-length-range', 0, 100 * 1024 * 1024], // max 100MB
-        { 'Content-Type': contentType },
-      ],
-    })).toString('base64');
-
     const fileUrl = `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
-    const uploadUrl = `https://${this.bucket}.s3.${this.region}.amazonaws.com`;
+
+    if (!this.s3Client) {
+      // Dev mode — return unsigned URL
+      return { uploadUrl: fileUrl, fileUrl, key };
+    }
+
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      ContentType: contentType,
+    });
+
+    const uploadUrl = await getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
 
     this.logger.log(`Presigned URL generated: ${key}`);
-
     return { uploadUrl, fileUrl, key };
   }
 

@@ -1,23 +1,36 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket, OnGatewayConnection } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 import { ChatMessageEntity } from '../../database/entities';
 
 @WebSocketGateway({ cors: { origin: '*' }, namespace: '/realtime' })
-export class RealtimeGateway {
+export class RealtimeGateway implements OnGatewayConnection {
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(RealtimeGateway.name);
   private viewerCounts = new Map<string, number>();
+  private authenticatedUsers = new Map<string, { userId: string; username: string }>();
 
   constructor(
     @InjectRepository(ChatMessageEntity)
     private readonly chatRepo: Repository<ChatMessageEntity>,
+    private readonly jwtService: JwtService,
   ) {}
 
   handleConnection(client: Socket) {
-    this.logger.log(`Client connected: ${client.id}`);
+    // Validate JWT on connection
+    const token = client.handshake.auth?.token || client.handshake.query?.token;
+    if (token) {
+      try {
+        const payload = this.jwtService.verify(token as string);
+        this.authenticatedUsers.set(client.id, { userId: payload.sub, username: payload.email });
+      } catch {
+        // Allow connection for read-only (viewing feed/streams) but mark as unauthenticated
+      }
+    }
+    this.logger.log(`Client connected: ${client.id} (auth: ${this.authenticatedUsers.has(client.id)})`);
   }
 
   handleDisconnect(client: Socket) {
@@ -65,14 +78,24 @@ export class RealtimeGateway {
 
   @SubscribeMessage('chat:send')
   async handleChat(@ConnectedSocket() client: Socket, @MessageBody() data: { roomId: string; text: string; userId: string; username: string }) {
+    // Only authenticated users can send chat
+    const authUser = this.authenticatedUsers.get(client.id);
+    if (!authUser) {
+      client.emit('error', { message: 'Authentication required to send messages' });
+      return;
+    }
+
     if (!data.text?.trim() || !data.roomId) return;
+
+    // Sanitize text (strip HTML/script tags)
+    const sanitizedText = data.text.trim().substring(0, 500).replace(/<[^>]*>/g, '');
 
     const message = {
       id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
       roomId: data.roomId,
-      userId: data.userId,
-      username: data.username,
-      text: data.text.trim().substring(0, 500),
+      userId: authUser.userId,
+      username: authUser.username,
+      text: sanitizedText,
       type: 'message',
       createdAt: new Date().toISOString(),
     };
@@ -92,9 +115,13 @@ export class RealtimeGateway {
 
   @SubscribeMessage('comment:send')
   handleComment(@ConnectedSocket() client: Socket, @MessageBody() data: { reportId: string; text: string; username: string }) {
+    const authUser = this.authenticatedUsers.get(client.id);
+    if (!authUser) return;
+
+    const sanitizedText = data.text?.trim().substring(0, 500).replace(/<[^>]*>/g, '') || '';
     this.server.to(`report:${data.reportId}`).emit('comment:new', {
-      text: data.text,
-      username: data.username,
+      text: sanitizedText,
+      username: authUser.username,
       timestamp: new Date().toISOString(),
     });
   }

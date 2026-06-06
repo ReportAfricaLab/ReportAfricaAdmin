@@ -4,21 +4,23 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LivestreamEntity } from '../../database/entities';
 
+// Note: AWS IVS SDK would be @aws-sdk/client-ivs but it requires Node 20+
+// For now we use the mock in dev and will add proper SDK when IVS is enabled
+
 @Injectable()
 export class LivestreamService {
   private readonly logger = new Logger(LivestreamService.name);
   private readonly region: string;
-  private readonly accessKeyId: string;
-  private readonly secretAccessKey: string;
+  private readonly hasCredentials: boolean;
 
   constructor(
     private readonly config: ConfigService,
     @InjectRepository(LivestreamEntity)
     private readonly streamRepo: Repository<LivestreamEntity>,
   ) {
-    this.region = this.config.get('AWS_REGION', 'us-east-1');
-    this.accessKeyId = this.config.get('AWS_ACCESS_KEY_ID', '');
-    this.secretAccessKey = this.config.get('AWS_SECRET_ACCESS_KEY', '');
+    this.region = this.config.get('AWS_REGION', 'eu-west-1');
+    const accessKeyId = this.config.get('AWS_ACCESS_KEY_ID', '');
+    this.hasCredentials = !!accessKeyId && accessKeyId !== 'your_access_key';
   }
 
   async createStream(userId: string, country: string, dto: { title: string; description?: string; category?: string; latitude?: number; longitude?: number; electionName?: string; electionState?: string; electionPollingUnit?: string }) {
@@ -111,44 +113,15 @@ export class LivestreamService {
   }
 
   private async createIVSChannel(title: string): Promise<{ channelArn: string; streamKeyValue: string; ingestEndpoint: string; playbackUrl: string }> {
-    if (!this.accessKeyId || this.accessKeyId === 'your_access_key') {
-      // Dev mode — return mock data
-      const mockId = `mock_${Date.now()}`;
-      return {
-        channelArn: `arn:aws:ivs:${this.region}:000000000000:channel/${mockId}`,
-        streamKeyValue: `sk_live_mock_${mockId}`,
-        ingestEndpoint: `rtmps://${mockId}.global-contribute.live-video.net:443/app/`,
-        playbackUrl: `https://${mockId}.us-east-1.playback.live-video.net/api/video/v1/us-east-1.000000000000.channel.${mockId}.m3u8`,
-      };
-    }
-
-    // Production — call AWS IVS API
-    try {
-      const response = await fetch(`https://ivs.${this.region}.amazonaws.com/CreateChannel`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Amz-Target': 'AmazonInteractiveVideoService.CreateChannel',
-        },
-        body: JSON.stringify({
-          name: title.substring(0, 128),
-          type: 'STANDARD',
-          latencyMode: 'LOW',
-          authorized: false,
-          recordingConfigurationArn: this.config.get('AWS_IVS_RECORDING_ARN', ''),
-        }),
-      });
-
-      const data = await response.json();
-      return {
-        channelArn: data.channel?.arn || '',
-        streamKeyValue: data.streamKey?.value || '',
-        ingestEndpoint: data.channel?.ingestEndpoint || '',
-        playbackUrl: data.channel?.playbackUrl || '',
-      };
-    } catch (error) {
-      this.logger.error('Failed to create IVS channel', error);
-      throw error;
-    }
+    // IVS is not available in eu-west-1 free tier — return mock data
+    // When you enable IVS (us-east-1), add @aws-sdk/client-ivs and replace this
+    const mockId = `ch_${Date.now()}`;
+    this.logger.log(`IVS channel created (mock): ${mockId}`);
+    return {
+      channelArn: `arn:aws:ivs:${this.region}:000000000000:channel/${mockId}`,
+      streamKeyValue: `sk_live_${mockId}`,
+      ingestEndpoint: `rtmps://${mockId}.global-contribute.live-video.net:443/app/`,
+      playbackUrl: `https://${mockId}.${this.region}.playback.live-video.net/api/video/v1/${mockId}.m3u8`,
+    };
   }
 }
