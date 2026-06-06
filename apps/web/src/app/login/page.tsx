@@ -37,7 +37,7 @@ export default function LoginPage() {
         const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
         if (!googleClientId) { setError('Google OAuth not configured'); setLoading(false); return; }
 
-        const redirectUri = window.location.origin + '/auth/callback/google';
+        const redirectUri = window.location.origin + '/google-callback';
         const scope = 'openid email profile';
         const state = btoa(JSON.stringify({ returnTo: '/feed' }));
         const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token+id_token&scope=${encodeURIComponent(scope)}&nonce=${Date.now()}&state=${state}`;
