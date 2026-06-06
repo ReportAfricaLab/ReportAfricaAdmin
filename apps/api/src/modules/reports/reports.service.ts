@@ -25,6 +25,18 @@ export class ReportsService {
   ) {}
 
   async create(authorId: string, country: string, dto: CreateReportDto): Promise<ReportEntity> {
+    // Duplicate detection - check if same user posted similar report in last 10 minutes
+    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000);
+    const duplicate = await this.reportRepo
+      .createQueryBuilder('r')
+      .where('r.authorId = :authorId', { authorId })
+      .andWhere('r.title = :title', { title: dto.title })
+      .andWhere('r.createdAt > :tenMinAgo', { tenMinAgo })
+      .getOne();
+    if (duplicate) {
+      throw new BadRequestException('You already submitted a similar report. Please wait before posting again.');
+    }
+
     // AI moderation check
     const modResult = await this.moderationService.moderateReport(dto.title, dto.description, dto.category);
 

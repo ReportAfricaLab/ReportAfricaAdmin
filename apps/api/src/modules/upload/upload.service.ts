@@ -47,6 +47,7 @@ export class UploadService {
       Bucket: this.bucket,
       Key: key,
       ContentType: contentType,
+      ContentLength: this.getMaxSize(fileType),
     });
 
     const uploadUrl = await getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
@@ -67,6 +68,17 @@ export class UploadService {
       case 'voice_note': return 'audio';
       case 'document': return 'documents';
       default: return 'uploads';
+    }
+  }
+
+  private getMaxSize(fileType: string): number {
+    switch (fileType) {
+      case 'image': return 10 * 1024 * 1024; // 10MB
+      case 'video': return 100 * 1024 * 1024; // 100MB
+      case 'audio':
+      case 'voice_note': return 25 * 1024 * 1024; // 25MB
+      case 'document': return 20 * 1024 * 1024; // 20MB
+      default: return 10 * 1024 * 1024;
     }
   }
 

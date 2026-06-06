@@ -26,6 +26,14 @@ export default function EarningsPage() {
       <h1 className="text-2xl font-bold text-gray-900 mb-2">💰 My Earnings</h1>
       <p className="text-sm text-gray-500 mb-6">All earnings are paid directly to your bank account via KoraPay. No funds are held on the platform.</p>
 
+      {/* Pending tips warning */}
+      {earnings.some((e: any) => e.status === 'pending_bank') && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl mb-6">
+          <p className="text-sm font-medium text-amber-800">⚠️ You have pending tips!</p>
+          <p className="text-xs text-amber-600 mt-1">Add your bank details in <a href="/profile" className="underline font-medium">Profile Settings</a> to receive your earnings.</p>
+        </div>
+      )}
+
       {stats?.earnings?.length > 0 && (
         <div className="grid grid-cols-2 gap-4 mb-8">
           {stats.earnings.map((s: any) => (
