@@ -1,0 +1,7 @@
+{
+  "commands": [
+    "docker ps -a --format '{{.Names}} {{.Status}}'",
+    "df -h / | tail -1",
+    "docker logs reportafrica-api --tail 10 2>&1 || echo 'NO CONTAINER'"
+  ]
+}

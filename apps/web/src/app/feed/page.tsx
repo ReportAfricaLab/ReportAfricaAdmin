@@ -85,7 +85,7 @@ export default function FeedPage() {
   }, [country, category, location]);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-3xl mx-auto px-4 py-8 min-h-screen">
       {/* Country Selector */}
       <div className="flex items-center gap-3 mb-6">
         <select value={country} onChange={(e) => setCountry(e.target.value)}
@@ -97,8 +97,8 @@ export default function FeedPage() {
         <span className="text-xs text-gray-400">Live Reports</span>
       </div>
 
-      {/* Category Filter */}
-      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
+      {/* Category Filter - horizontal scroll on mobile */}
+      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-thin">
         {CATEGORIES.map((cat) => (
           <button key={cat.key} onClick={() => setCategory(cat.key)}
             className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition ${category === cat.key ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
