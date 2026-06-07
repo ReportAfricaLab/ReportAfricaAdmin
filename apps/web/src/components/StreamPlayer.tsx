@@ -1,80 +1,79 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { Room, RoomEvent, Track, RemoteTrack, RemoteParticipant } from 'livekit-client';
 
 interface StreamPlayerProps {
-  playbackUrl: string;
+  wsUrl?: string;
+  token?: string;
+  playbackUrl?: string; // room name (legacy prop)
   title?: string;
-  onError?: () => void;
 }
 
-export default function StreamPlayer({ playbackUrl, title, onError }: StreamPlayerProps) {
+export default function StreamPlayer({ wsUrl, token, playbackUrl, title }: StreamPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<any>(null);
-  const [playing, setPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const roomRef = useRef<Room | null>(null);
+  const [connected, setConnected] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!playbackUrl || !videoRef.current) return;
+    if (!wsUrl || !token) {
+      setError('Waiting for stream connection...');
+      return;
+    }
 
-    let hls: any;
+    const room = new Room();
+    roomRef.current = room;
 
-    const initPlayer = async () => {
-      const Hls = (await import('hls.js')).default;
-
-      if (Hls.isSupported()) {
-        hls = new Hls({ liveSyncDurationCount: 3, liveMaxLatencyDurationCount: 6 });
-        hlsRef.current = hls;
-
-        hls.loadSource(playbackUrl);
-        hls.attachMedia(videoRef.current!);
-
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          videoRef.current?.play().then(() => setPlaying(true)).catch(() => {});
-        });
-
-        hls.on(Hls.Events.ERROR, (_: any, data: any) => {
-          if (data.fatal) {
-            setError('Stream unavailable');
-            onError?.();
-          }
-        });
-      } else if (videoRef.current!.canPlayType('application/vnd.apple.mpegurl')) {
-        // Safari native HLS
-        videoRef.current!.src = playbackUrl;
-        videoRef.current!.addEventListener('loadedmetadata', () => {
-          videoRef.current?.play().then(() => setPlaying(true)).catch(() => {});
-        });
-      } else {
-        setError('HLS playback not supported');
+    room.on(RoomEvent.TrackSubscribed, (track: RemoteTrack) => {
+      if (track.kind === Track.Kind.Video && videoRef.current) {
+        track.attach(videoRef.current);
       }
-    };
+      if (track.kind === Track.Kind.Audio && audioRef.current) {
+        track.attach(audioRef.current);
+      }
+    });
 
-    initPlayer();
+    room.on(RoomEvent.Connected, () => setConnected(true));
+    room.on(RoomEvent.Disconnected, () => setConnected(false));
+
+    room.connect(wsUrl, token).catch((err) => {
+      setError('Failed to connect to stream');
+      console.error('LiveKit connect error:', err);
+    });
 
     return () => {
-      if (hls) { hls.destroy(); hlsRef.current = null; }
+      room.disconnect();
+      roomRef.current = null;
     };
-  }, [playbackUrl]);
+  }, [wsUrl, token]);
 
   return (
-    <div className="relative bg-black aspect-video rounded-lg overflow-hidden">
-      <video ref={videoRef} playsInline autoPlay muted className="w-full h-full object-cover" />
-      {!playing && !error && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
-      {error && (
+    <div className="relative bg-black aspect-video rounded-xl overflow-hidden">
+      <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+      <audio ref={audioRef} autoPlay />
+      {!connected && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
           <div className="text-center">
-            <p className="text-white text-sm">{error}</p>
-            <p className="text-gray-400 text-xs mt-1">The broadcaster may have ended the stream</p>
+            {error ? (
+              <p className="text-gray-400 text-sm">{error}</p>
+            ) : (
+              <>
+                <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-white text-sm">Connecting to stream...</p>
+              </>
+            )}
           </div>
         </div>
       )}
-      {title && playing && (
-        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
-          <p className="text-white text-sm font-medium truncate">{title}</p>
+      {connected && (
+        <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 bg-red-600 text-white text-xs font-bold rounded-full">
+          <span className="w-2 h-2 rounded-full bg-white animate-pulse" /> LIVE
+        </div>
+      )}
+      {title && connected && (
+        <div className="absolute bottom-3 left-3 px-3 py-1 bg-black/60 text-white text-xs rounded-full">
+          {title}
         </div>
       )}
     </div>

@@ -172,6 +172,15 @@ export default function LivePage() {
     setStatus('live');
     setTab('go-live');
     setChatMessages([]);
+    // Get viewer token
+    if (token) {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+        const res = await fetch(`${API_URL}/livestream/${s.id}/viewer-token`, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        setWatchingStream({ ...s, viewerToken: data.token, wsUrl: data.wsUrl });
+      } catch {}
+    }
   };
 
   return (
@@ -204,7 +213,7 @@ export default function LivePage() {
           <div className="flex-1 bg-white rounded-xl border border-gray-200 overflow-hidden">
             {watchingStream ? (
               <div>
-                <StreamPlayer playbackUrl={watchingStream.playbackUrl} title={watchingStream.title} />
+                <StreamPlayer wsUrl={watchingStream.wsUrl} token={watchingStream.viewerToken} title={watchingStream.title} />
                 <div className="p-4">
                   <div className="flex items-center gap-3 mb-2">
                     <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded bg-red-600 text-white">

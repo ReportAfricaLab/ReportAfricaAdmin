@@ -3,30 +3,47 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LivestreamEntity } from '../../database/entities';
-
-// Note: AWS IVS SDK would be @aws-sdk/client-ivs but it requires Node 20+
-// For now we use the mock in dev and will add proper SDK when IVS is enabled
+import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
 
 @Injectable()
 export class LivestreamService {
   private readonly logger = new Logger(LivestreamService.name);
-  private readonly region: string;
-  private readonly hasCredentials: boolean;
+  private readonly livekitHost: string;
+  private readonly livekitApiKey: string;
+  private readonly livekitApiSecret: string;
+  private readonly roomService: RoomServiceClient | null;
 
   constructor(
     private readonly config: ConfigService,
     @InjectRepository(LivestreamEntity)
     private readonly streamRepo: Repository<LivestreamEntity>,
   ) {
-    this.region = this.config.get('AWS_REGION', 'eu-west-1');
-    const accessKeyId = this.config.get('AWS_ACCESS_KEY_ID', '');
-    this.hasCredentials = !!accessKeyId && accessKeyId !== 'your_access_key';
+    this.livekitHost = this.config.get('LIVEKIT_HOST', 'wss://reportafrica-project-0ankto27.livekit.cloud');
+    this.livekitApiKey = this.config.get('LIVEKIT_API_KEY', '');
+    this.livekitApiSecret = this.config.get('LIVEKIT_API_SECRET', '');
+
+    if (this.livekitApiKey && this.livekitApiSecret) {
+      this.roomService = new RoomServiceClient(this.livekitHost, this.livekitApiKey, this.livekitApiSecret);
+    } else {
+      this.roomService = null;
+    }
   }
 
   async createStream(userId: string, country: string, dto: { title: string; description?: string; category?: string; latitude?: number; longitude?: number; electionName?: string; electionState?: string; electionPollingUnit?: string }) {
-    // Create IVS channel via AWS API
-    const channelData = await this.createIVSChannel(dto.title);
+    const roomName = `stream_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
     const isElection = !!dto.electionName;
+
+    // Create LiveKit room
+    if (this.roomService) {
+      try {
+        await this.roomService.createRoom({ name: roomName, emptyTimeout: 300, maxParticipants: 1000 });
+      } catch (err) {
+        this.logger.error('Failed to create LiveKit room', err);
+      }
+    }
+
+    // Generate broadcaster token
+    const broadcasterToken = this.generateToken(roomName, userId, true);
 
     const stream = this.streamRepo.create({
       userId,
@@ -36,12 +53,11 @@ export class LivestreamService {
       category: isElection ? 'election' : (dto.category || 'general'),
       latitude: dto.latitude,
       longitude: dto.longitude,
-      channelArn: channelData.channelArn,
-      streamKeyValue: channelData.streamKeyValue,
-      ingestEndpoint: channelData.ingestEndpoint,
-      playbackUrl: channelData.playbackUrl,
-      status: isElection ? 'live' : 'ready',
-      startedAt: isElection ? new Date() : undefined,
+      channelArn: roomName, // Store room name here
+      streamKeyValue: broadcasterToken, // Store broadcaster token
+      ingestEndpoint: this.livekitHost, // LiveKit WebSocket URL
+      playbackUrl: roomName, // Viewers use room name to join
+      status: 'ready',
       electionName: dto.electionName,
       electionState: dto.electionState,
       electionPollingUnit: dto.electionPollingUnit,
@@ -65,7 +81,22 @@ export class LivestreamService {
 
     stream.status = 'ended';
     stream.endedAt = new Date();
+
+    // Delete LiveKit room
+    if (this.roomService) {
+      try { await this.roomService.deleteRoom(stream.channelArn); } catch {}
+    }
+
     return this.streamRepo.save(stream);
+  }
+
+  // Generate viewer token for watching a stream
+  async getViewerToken(streamId: string, viewerId: string, viewerName: string) {
+    const stream = await this.streamRepo.findOne({ where: { id: streamId } });
+    if (!stream) throw new NotFoundException('Stream not found');
+
+    const token = this.generateToken(stream.channelArn, viewerId, false, viewerName);
+    return { token, wsUrl: this.livekitHost, roomName: stream.channelArn };
   }
 
   async getLiveStreams(country: string, page = 1, limit = 20) {
@@ -113,16 +144,24 @@ export class LivestreamService {
     return qb.orderBy('s.startedAt', 'DESC').getMany();
   }
 
-  private async createIVSChannel(title: string): Promise<{ channelArn: string; streamKeyValue: string; ingestEndpoint: string; playbackUrl: string }> {
-    // IVS is not available in eu-west-1 free tier — return mock data
-    // When you enable IVS (us-east-1), add @aws-sdk/client-ivs and replace this
-    const mockId = `ch_${Date.now()}`;
-    this.logger.log(`IVS channel created (mock): ${mockId}`);
-    return {
-      channelArn: `arn:aws:ivs:${this.region}:000000000000:channel/${mockId}`,
-      streamKeyValue: `sk_live_${mockId}`,
-      ingestEndpoint: `rtmps://${mockId}.global-contribute.live-video.net:443/app/`,
-      playbackUrl: `https://${mockId}.${this.region}.playback.live-video.net/api/video/v1/${mockId}.m3u8`,
-    };
+  private generateToken(roomName: string, identity: string, isPublisher: boolean, name?: string): string {
+    if (!this.livekitApiKey || !this.livekitApiSecret) {
+      return 'mock_token_' + Date.now();
+    }
+
+    const token = new AccessToken(this.livekitApiKey, this.livekitApiSecret, {
+      identity,
+      name: name || identity,
+    });
+
+    token.addGrant({
+      room: roomName,
+      roomJoin: true,
+      canPublish: isPublisher,
+      canSubscribe: true,
+      canPublishData: true,
+    });
+
+    return token.toJwt();
   }
 }

@@ -64,6 +64,12 @@ export class LivestreamController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get(':id/viewer-token')
+  getViewerToken(@Param('id') id: string, @Request() req: any) {
+    return this.service.getViewerToken(id, req.user.id, req.user.email);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get('my/streams')
   getMyStreams(@Request() req: any) {
     return this.service.getUserStreams(req.user.id);
