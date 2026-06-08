@@ -224,7 +224,7 @@ function MediaGrid({ media }: { media: { type: string; url: string }[] }) {
 
 function FeedCard({ r }: { r: any }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <a href={`/report?id=${r.id}`} className="block bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-gray-300 transition cursor-pointer">
       <div className="flex items-center gap-2 mb-2">
         <span className="px-2 py-0.5 text-xs font-bold rounded text-white" style={{ backgroundColor: INCIDENT_COLORS[r.type] || '#6B7280' }}>
           {r.type.replace('_', ' ').toUpperCase()}
@@ -251,7 +251,7 @@ function FeedCard({ r }: { r: any }) {
         {r.user?.displayName || 'Anonymous'} · {new Date(r.createdAt).toLocaleString()}
         {r.isVerifiedObserver && <span className="ml-2 text-green-600 font-semibold">✓ Verified Observer</span>}
       </p>
-    </div>
+    </a>
   );
 }
 
