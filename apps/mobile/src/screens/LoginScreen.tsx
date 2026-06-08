@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
-import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { authAPI } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
@@ -17,25 +16,33 @@ export default function LoginScreen({ navigation }: any) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: GOOGLE_CLIENT_ID,
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const idToken = response.params.id_token;
-      handleGoogleLogin(idToken);
-    }
-  }, [response]);
-
-  const handleGoogleLogin = async (idToken: string) => {
+  const handleGoogleLogin = async () => {
+    if (!GOOGLE_CLIENT_ID) { Alert.alert('Error', 'Google OAuth not configured'); return; }
     setLoading(true);
     try {
-      const res = await authAPI.googleLogin({ idToken });
-      setAuth(res.data.user, res.data.token, res.data.refreshToken);
+      // Open Google login in browser, redirect to our web callback which handles the token
+      const callbackUrl = 'https://reportafrica-web.vercel.app/google-callback';
+      const scope = 'openid email profile';
+      const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackUrl)}&response_type=token+id_token&scope=${encodeURIComponent(scope)}&nonce=${Date.now()}`;
+
+      const result = await WebBrowser.openAuthSessionAsync(url, 'reportafrica://');
+
+      if (result.type === 'success' && result.url) {
+        // Extract id_token from the URL hash
+        const hash = result.url.split('#')[1];
+        if (hash) {
+          const params = new URLSearchParams(hash);
+          const idToken = params.get('id_token');
+          if (idToken) {
+            const res = await authAPI.googleLogin({ idToken });
+            setAuth(res.data.user, res.data.token, res.data.refreshToken);
+            return;
+          }
+        }
+      }
+      setLoading(false);
     } catch (err: any) {
-      Alert.alert('Google Sign-In Failed', err.response?.data?.message || 'Something went wrong.');
-    } finally {
+      Alert.alert('Google Sign-In Failed', err.message || 'Something went wrong.');
       setLoading(false);
     }
   };
@@ -107,7 +114,7 @@ export default function LoginScreen({ navigation }: any) {
         <View style={styles.dividerLine} />
       </View>
 
-      <TouchableOpacity style={styles.googleBtn} onPress={() => promptAsync()} disabled={!request || loading}>
+      <TouchableOpacity style={styles.googleBtn} onPress={handleGoogleLogin} disabled={loading}>
         <Text style={styles.googleBtnText}>G  Continue with Google</Text>
       </TouchableOpacity>
 

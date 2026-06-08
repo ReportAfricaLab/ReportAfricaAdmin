@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, ScrollView, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { useAppStore } from '../store/useAppStore';
 import { getCurrentLocation } from '../services/location';
 import { livestreamAPI, WS_URL, getAuthToken } from '../services/api';
