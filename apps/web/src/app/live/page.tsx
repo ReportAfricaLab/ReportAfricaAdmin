@@ -59,7 +59,7 @@ export default function LivePage() {
     let socket: any;
     (async () => {
       const { io } = await import('socket.io-client');
-      socket = io(WS_URL, { transports: ['websocket'] });
+      socket = io(WS_URL, { transports: ['websocket'], auth: { token: token || localStorage.getItem('ra_token') } });
       socketRef.current = socket;
 
       socket.on('connect', () => {
@@ -167,19 +167,23 @@ export default function LivePage() {
   };
 
   const watchStream = async (s: any) => {
-    setWatchingStream(s);
     setStreamId(s.id);
     setStatus('live');
     setTab('go-live');
     setChatMessages([]);
-    // Get viewer token
-    if (token) {
+    // Get viewer token first, then set watchingStream
+    const authToken = token || localStorage.getItem('ra_token');
+    if (authToken) {
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-        const res = await fetch(`${API_URL}/livestream/${s.id}/viewer-token`, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(`${API_URL}/livestream/${s.id}/viewer-token`, { headers: { Authorization: `Bearer ${authToken}` } });
         const data = await res.json();
         setWatchingStream({ ...s, viewerToken: data.token, wsUrl: data.wsUrl });
-      } catch {}
+      } catch {
+        setWatchingStream(s);
+      }
+    } else {
+      setWatchingStream(s);
     }
   };
 
