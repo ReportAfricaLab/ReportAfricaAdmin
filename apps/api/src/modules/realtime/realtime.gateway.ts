@@ -25,7 +25,7 @@ export class RealtimeGateway implements OnGatewayConnection {
     if (token) {
       try {
         const payload = this.jwtService.verify(token as string);
-        this.authenticatedUsers.set(client.id, { userId: payload.sub, username: payload.email });
+        this.authenticatedUsers.set(client.id, { userId: payload.sub, username: payload.email?.split('@')[0] || payload.sub });
       } catch {
         // Allow connection for read-only (viewing feed/streams) but mark as unauthenticated
       }
@@ -86,7 +86,7 @@ export class RealtimeGateway implements OnGatewayConnection {
       if (handshakeToken) {
         try {
           const payload = this.jwtService.verify(handshakeToken as string);
-          authUser = { userId: payload.sub, username: payload.email };
+          authUser = { userId: payload.sub, username: payload.email?.split('@')[0] || payload.sub };
           this.authenticatedUsers.set(client.id, authUser);
         } catch {}
       }

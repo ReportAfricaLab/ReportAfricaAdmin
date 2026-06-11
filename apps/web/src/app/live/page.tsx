@@ -177,8 +177,27 @@ export default function LivePage() {
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
         const res = await fetch(`${API_URL}/livestream/${s.id}/viewer-token`, { headers: { Authorization: `Bearer ${authToken}` } });
-        const data = await res.json();
-        setWatchingStream({ ...s, viewerToken: data.token, wsUrl: data.wsUrl });
+        if (res.ok) {
+          const data = await res.json();
+          setWatchingStream({ ...s, viewerToken: data.token, wsUrl: data.wsUrl });
+        } else {
+          // Token might be expired, try refresh
+          const refreshTk = localStorage.getItem('ra_refresh');
+          if (refreshTk) {
+            const refreshRes = await fetch(`${API_URL}/auth/refresh`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken: refreshTk }) });
+            if (refreshRes.ok) {
+              const refreshData = await refreshRes.json();
+              localStorage.setItem('ra_token', refreshData.token);
+              const retryRes = await fetch(`${API_URL}/livestream/${s.id}/viewer-token`, { headers: { Authorization: `Bearer ${refreshData.token}` } });
+              if (retryRes.ok) {
+                const retryData = await retryRes.json();
+                setWatchingStream({ ...s, viewerToken: retryData.token, wsUrl: retryData.wsUrl });
+                return;
+              }
+            }
+          }
+          setWatchingStream(s);
+        }
       } catch {
         setWatchingStream(s);
       }
