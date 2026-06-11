@@ -3,6 +3,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import * as helmet from 'helmet';
 const cookieParser = require('cookie-parser');
+import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { initSentry, SentryExceptionFilter } from './common/sentry';
@@ -65,5 +66,23 @@ async function bootstrap() {
 
   const logger = new Logger('Bootstrap');
   logger.log(`ReportAfrica API running on port ${port} [${process.env.NODE_ENV || 'development'}]`);
+
+  // Run pending migrations for columns that were added to entities but not synced in production
+  if (isProduction) {
+    try {
+      const ds = app.get(DataSource);
+      await ds.query(`
+        ALTER TABLE livestreams ADD COLUMN IF NOT EXISTS thumbnail_url VARCHAR DEFAULT NULL;
+        ALTER TABLE livestreams ADD COLUMN IF NOT EXISTS recording_url VARCHAR DEFAULT NULL;
+        ALTER TABLE livestreams ADD COLUMN IF NOT EXISTS election_id VARCHAR DEFAULT NULL;
+        ALTER TABLE livestreams ADD COLUMN IF NOT EXISTS election_name VARCHAR DEFAULT NULL;
+        ALTER TABLE livestreams ADD COLUMN IF NOT EXISTS election_state VARCHAR DEFAULT NULL;
+        ALTER TABLE livestreams ADD COLUMN IF NOT EXISTS election_polling_unit VARCHAR DEFAULT NULL;
+      `);
+      logger.log('Startup migration: livestreams columns verified');
+    } catch (err) {
+      logger.warn('Startup migration warning: ' + (err as any).message);
+    }
+  }
 }
 bootstrap();

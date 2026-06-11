@@ -149,7 +149,7 @@ export default function LivePage() {
     stopCamera();
     setStatus('idle');
     setStreamId('');
-    setForm({ title: '', description: '', category: 'general' });
+    setForm({ title: '', description: '', category: 'general', thumbnailUrl: '' });
     setChatMessages([]);
     setError('');
     setBroadcastConfig(null);
