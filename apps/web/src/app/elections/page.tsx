@@ -259,13 +259,32 @@ function FeedCard({ r }: { r: any }) {
 
 function ElectionLiveTab({ streams }: { streams: any[] }) {
   const [watching, setWatching] = useState<any>(null);
+  const [viewerToken, setViewerToken] = useState<string | null>(null);
+  const [viewerWsUrl, setViewerWsUrl] = useState<string | null>(null);
+
+  const watchStream = async (s: any) => {
+    setWatching(s);
+    // Fetch viewer token
+    const authToken = localStorage.getItem('ra_token');
+    if (authToken) {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+        const res = await fetch(`${API_URL}/livestream/${s.id}/viewer-token`, { headers: { Authorization: `Bearer ${authToken}` } });
+        if (res.ok) {
+          const data = await res.json();
+          setViewerToken(data.token);
+          setViewerWsUrl(data.wsUrl);
+        }
+      } catch {}
+    }
+  };
 
   if (watching) {
     return (
       <div className="space-y-4">
-        <button onClick={() => setWatching(null)} className="text-sm text-[#0F7B6C] font-medium hover:underline">← Back to streams</button>
+        <button onClick={() => { setWatching(null); setViewerToken(null); setViewerWsUrl(null); }} className="text-sm text-[#0F7B6C] font-medium hover:underline">← Back to streams</button>
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <StreamPlayer playbackUrl={watching.playbackUrl} title={watching.title} />
+          <StreamPlayer wsUrl={viewerWsUrl || undefined} token={viewerToken || undefined} title={watching.title} />
           <div className="p-4">
             <div className="flex items-center gap-3 mb-2">
               <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded bg-red-600 text-white">
@@ -292,7 +311,7 @@ function ElectionLiveTab({ streams }: { streams: any[] }) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {streams.map((s: any) => (
-            <div key={s.id} onClick={() => setWatching(s)}
+            <div key={s.id} onClick={() => watchStream(s)}
               className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition cursor-pointer">
               <div className="relative bg-gray-900 aspect-video flex items-center justify-center">
                 <span className="text-4xl">📹</span>
@@ -409,6 +428,8 @@ function ElectionReportForm({ election, onClose, onSubmitted }: { election: stri
         electionState: state,
         electionPollingUnit: pollingUnit || undefined,
       });
+      // Mark stream as live
+      await api.livestream.goLive(token, stream.id);
       setBroadcastConfig({
         ingestEndpoint: stream.ingestEndpoint,
         streamKey: stream.streamKeyValue || stream.streamKey || '',
