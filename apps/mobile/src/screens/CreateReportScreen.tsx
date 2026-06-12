@@ -43,7 +43,7 @@ export default function CreateReportScreen() {
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') { Alert.alert('Permission needed', 'Camera access is required'); return; }
-    const result = await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.All, quality: 0.8 });
+    const result = await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.All, quality: 0.8, exif: false });
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
       setMediaFiles((prev) => [...prev, { uri: asset.uri, type: asset.type === 'video' ? 'video/mp4' : 'image/jpeg', fileName: asset.fileName || `media_${Date.now()}` }]);
@@ -51,7 +51,7 @@ export default function CreateReportScreen() {
   };
 
   const pickFromGallery = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.All, quality: 0.8, allowsMultipleSelection: true, selectionLimit: 5 });
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.All, quality: 0.8, exif: false, allowsMultipleSelection: true, selectionLimit: 5 });
     if (!result.canceled) {
       const newFiles = result.assets.map((a) => ({ uri: a.uri, type: a.type === 'video' ? 'video/mp4' : 'image/jpeg', fileName: a.fileName || `media_${Date.now()}` }));
       setMediaFiles((prev) => [...prev, ...newFiles].slice(0, 5));

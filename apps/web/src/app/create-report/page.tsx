@@ -4,6 +4,25 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 
+// Strip EXIF metadata by redrawing image through Canvas
+async function stripExif(file: File): Promise<File> {
+  if (!file.type.startsWith('image/')) return file;
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      canvas.getContext('2d')!.drawImage(img, 0, 0);
+      canvas.toBlob((blob) => {
+        resolve(blob ? new File([blob], file.name, { type: file.type }) : file);
+      }, file.type, 0.92);
+    };
+    img.onerror = () => resolve(file);
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 const CATEGORIES = [
   { key: 'traffic', label: '🚗 Traffic' },
   { key: 'police_security', label: '🚨 Police & Security' },
@@ -105,15 +124,19 @@ export default function CreateReportPage() {
     setTimeout(() => { try { recognition.stop(); } catch {} }, 60000);
   };
 
-  const handleMediaAdd = (files: FileList | null) => {
+  const handleMediaAdd = async (files: FileList | null) => {
     if (!files) return;
-    const newFiles = Array.from(files).slice(0, 5 - mediaFiles.length).map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-      type: file.type,
-      blurredUrl: undefined,
-      blurring: false,
-      s3Key: undefined,
+    const incoming = Array.from(files).slice(0, 5 - mediaFiles.length);
+    const newFiles = await Promise.all(incoming.map(async (file) => {
+      const stripped = await stripExif(file);
+      return {
+        file: stripped,
+        preview: URL.createObjectURL(stripped),
+        type: file.type,
+        blurredUrl: undefined,
+        blurring: false,
+        s3Key: undefined,
+      };
     }));
     setMediaFiles((prev) => [...prev, ...newFiles]);
   };
