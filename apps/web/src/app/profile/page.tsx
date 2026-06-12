@@ -240,6 +240,20 @@ export default function ProfilePage() {
       <button onClick={logout} className="w-full py-3 bg-red-50 text-red-600 font-medium rounded-xl hover:bg-red-100 transition">
         Sign Out
       </button>
+
+      {/* Secure Wipe */}
+      <button onClick={() => {
+        if (confirm('⚠️ This will delete ALL local data (tokens, cache, history). You will be logged out. Continue?')) {
+          localStorage.clear();
+          sessionStorage.clear();
+          document.cookie.split(';').forEach(c => document.cookie = c.trim().split('=')[0] + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/');
+          if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+          if ('caches' in window) caches.keys().then(ks => ks.forEach(k => caches.delete(k)));
+          window.location.href = '/login';
+        }
+      }} className="w-full py-3 bg-gray-50 text-gray-500 text-sm font-medium rounded-xl hover:bg-gray-100 transition">
+        🗑️ Clear My Data
+      </button>
     </div>
   );
 }

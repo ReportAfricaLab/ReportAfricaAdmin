@@ -25,6 +25,7 @@ interface AppState {
 
   setAuth: (user: User, token: string, refreshToken?: string) => void;
   logout: () => void;
+  secureWipe: () => void;
   setViewingCountry: (country: string) => void;
   setCountry: (country: string) => void;
   toggleDarkMode: () => void;
@@ -61,6 +62,14 @@ export const useAppStore = create<AppState>((set) => ({
       getStorage().removeItem('ra_token');
       getStorage().removeItem('ra_user');
       getStorage().removeItem('ra_refresh');
+    } catch {}
+  },
+
+  secureWipe: () => {
+    setAuthToken(null);
+    set({ user: null, token: null, refreshToken: null, isAuthenticated: false, isDarkMode: false });
+    try {
+      getStorage().clear();
     } catch {}
   },
 

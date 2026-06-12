@@ -29,7 +29,7 @@ const TRUST_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export default function ProfileScreen() {
-  const { user, logout, userCountry, token, setAuth, isDarkMode, toggleDarkMode } = useAppStore();
+  const { user, logout, userCountry, token, setAuth, isDarkMode, toggleDarkMode, secureWipe } = useAppStore();
   const { language, setLanguage, t } = useI18n();
   const colors = useThemeColors();
   const navigation = useNavigation<any>();
@@ -41,6 +41,8 @@ export default function ProfileScreen() {
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [saving, setSaving] = useState(false);
+  const [wipeTaps, setWipeTaps] = useState(0);
+  const wipeTapTimer = React.useRef<any>(null);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -108,7 +110,16 @@ export default function ProfileScreen() {
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       {/* Professional Profile Header */}
       <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-        <View style={styles.coverBar} />
+        <TouchableOpacity activeOpacity={1} onPress={() => {
+          const now = Date.now();
+          if (wipeTapTimer.current && now - wipeTapTimer.current > 2000) setWipeTaps(0);
+          wipeTapTimer.current = now;
+          const next = wipeTaps + 1;
+          setWipeTaps(next);
+          if (next >= 5) { setWipeTaps(0); secureWipe(); }
+        }}>
+          <View style={styles.coverBar} />
+        </TouchableOpacity>
         <View style={styles.profileSection}>
           <TouchableOpacity onPress={handleChangePhoto} style={styles.avatarContainer}>
             {avatar ? (
@@ -246,6 +257,16 @@ export default function ProfileScreen() {
       <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
         <Text style={styles.logoutText}>Sign Out</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.wipeBtn} onPress={() => {
+        Alert.alert(
+          '🚨 Clear All Data',
+          'This will permanently delete all local data including tokens, cache, and offline reports. You will be logged out. This cannot be undone.',
+          [{ text: 'Cancel', style: 'cancel' }, { text: 'Clear Everything', style: 'destructive', onPress: secureWipe }]
+        );
+      }}>
+        <Text style={styles.wipeText}>🗑️ Clear My Data</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -294,4 +315,6 @@ const styles = StyleSheet.create({
   pickerTextActive: { color: '#fff', fontWeight: '600' },
   logoutBtn: { marginHorizontal: 16, marginTop: 20, paddingVertical: 14, backgroundColor: '#fef2f2', borderRadius: theme.borderRadius.md, alignItems: 'center' },
   logoutText: { color: '#dc2626', fontSize: theme.fontSize.md, fontWeight: '600' },
+  wipeBtn: { marginHorizontal: 16, marginTop: 10, marginBottom: 40, paddingVertical: 14, backgroundColor: '#f3f4f6', borderRadius: theme.borderRadius.md, alignItems: 'center' },
+  wipeText: { color: '#6b7280', fontSize: theme.fontSize.sm, fontWeight: '500' },
 });
