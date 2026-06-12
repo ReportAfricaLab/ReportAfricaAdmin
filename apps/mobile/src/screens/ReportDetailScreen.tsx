@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, Share } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { reportsAPI, followsAPI, tipsAPI, reportUpdatesAPI } from '../services/api';
 import api from '../services/api';
@@ -116,6 +116,20 @@ export default function ReportDetailScreen({ route }: any) {
     } catch { Alert.alert('Error', 'Failed to post update'); }
   };
 
+  const HIGH_RISK_CATEGORIES = ['election', 'police_security', 'emergency', 'health'];
+  const handleShare = () => {
+    const doShare = () => Share.share({ message: `${report.title} — ReportAfrica https://reportafrica-web.vercel.app/report?id=${id}` });
+    if (HIGH_RISK_CATEGORIES.includes(report.category) && report.verificationLevel === 'unverified') {
+      Alert.alert(
+        '⚠️ Unverified Report',
+        'This report has NOT been verified. Sharing false information about elections, security, or emergencies may have legal consequences.\n\nAre you sure you want to share?',
+        [{ text: 'Cancel', style: 'cancel' }, { text: 'Share Anyway', style: 'destructive', onPress: doShare }]
+      );
+    } else {
+      doShare();
+    }
+  };
+
   if (loading) return <View style={styles.center}><Text style={styles.loadingText}>Loading...</Text></View>;
   if (!report) return <View style={styles.center}><Text style={styles.loadingText}>Report not found</Text></View>;
 
@@ -188,6 +202,11 @@ export default function ReportDetailScreen({ route }: any) {
       </View>
 
       <Text style={styles.views}>👁️ {report.viewCount} views · 💬 {report.commentCount} comments</Text>
+
+      {/* Share */}
+      <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
+        <Text style={styles.shareBtnText}>📤 Share Report</Text>
+      </TouchableOpacity>
 
       {/* Verification Section */}
       <View style={styles.verifySection}>
@@ -314,6 +333,8 @@ const styles = StyleSheet.create({
   disputeBtn: { flex: 1, paddingVertical: 12, backgroundColor: '#fef2f2', borderRadius: 8, alignItems: 'center' },
   disputeText: { fontSize: 14, fontWeight: '600', color: '#dc2626' },
   views: { fontSize: 12, color: theme.colors.light.textSecondary, textAlign: 'center', marginBottom: 12 },
+  shareBtn: { paddingVertical: 12, backgroundColor: '#f3f4f6', borderRadius: 8, alignItems: 'center', marginBottom: 16 },
+  shareBtnText: { fontSize: 14, fontWeight: '600', color: theme.colors.light.text },
   tipBtn: { paddingVertical: 12, backgroundColor: '#fef3c7', borderRadius: 8, alignItems: 'center', marginBottom: 8, flexDirection: 'row', justifyContent: 'center', gap: 10 },
   tipBtnText: { fontSize: 14, fontWeight: '600', color: '#92400e' },
   tipBalanceText: { fontSize: 12, color: '#92400e' },

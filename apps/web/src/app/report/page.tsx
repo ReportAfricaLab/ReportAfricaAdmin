@@ -41,6 +41,7 @@ function ReportContent() {
   const [verifyComment, setVerifyComment] = useState('');
   const [translatedText, setTranslatedText] = useState('');
   const [translating, setTranslating] = useState(false);
+  const [frictionModal, setFrictionModal] = useState<{ show: boolean; countdown: number; action: (() => void) | null }>({ show: false, countdown: 3, action: null });
 
   useEffect(() => {
     if (!id) return;
@@ -117,6 +118,21 @@ function ReportContent() {
     setComments((prev) => prev.map((c) => c.id === commentId ? { ...c, likes: (c.likes || 0) + 1 } : c));
   };
 
+  const HIGH_RISK_CATEGORIES = ['election', 'police_security', 'emergency', 'health'];
+  const handleShare = (action: () => void) => {
+    if (report && HIGH_RISK_CATEGORIES.includes(report.category) && report.verificationLevel === 'unverified') {
+      setFrictionModal({ show: true, countdown: 3, action });
+      const interval = setInterval(() => {
+        setFrictionModal((prev) => {
+          if (prev.countdown <= 1) { clearInterval(interval); return { ...prev, countdown: 0 }; }
+          return { ...prev, countdown: prev.countdown - 1 };
+        });
+      }, 1000);
+    } else {
+      action();
+    }
+  };
+
   if (loading) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-gray-400">Loading...</div>;
   if (!report) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-gray-400">Report not found</div>;
 
@@ -169,11 +185,11 @@ function ReportContent() {
           <div className="bg-white rounded-xl border border-gray-100 p-4">
             <h3 className="text-sm font-bold text-gray-900 mb-3">🔗 Share Report</h3>
             <div className="flex gap-2">
-              <button onClick={() => navigator.clipboard.writeText(window.location.href)} className="flex-1 py-2 bg-gray-100 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-200 transition">📋 Copy Link</button>
+              <button onClick={() => handleShare(() => navigator.clipboard.writeText(window.location.href))} className="flex-1 py-2 bg-gray-100 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-200 transition">📋 Copy Link</button>
             </div>
             <div className="flex gap-2 mt-2">
-              <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(report.title)}`} target="_blank" className="flex-1 py-2 bg-black text-white rounded-lg text-xs font-medium text-center">𝕏</a>
-              <a href={`https://wa.me/?text=${encodeURIComponent(report.title + ' ' + (typeof window !== 'undefined' ? window.location.href : ''))}`} target="_blank" className="flex-1 py-2 bg-green-500 text-white rounded-lg text-xs font-medium text-center">WhatsApp</a>
+              <button onClick={() => handleShare(() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(report.title)}`, '_blank'))} className="flex-1 py-2 bg-black text-white rounded-lg text-xs font-medium text-center">𝕏</button>
+              <button onClick={() => handleShare(() => window.open(`https://wa.me/?text=${encodeURIComponent(report.title + ' ' + window.location.href)}`, '_blank'))} className="flex-1 py-2 bg-green-500 text-white rounded-lg text-xs font-medium text-center">WhatsApp</button>
             </div>
           </div>
 
@@ -448,6 +464,26 @@ function ReportContent() {
       </aside>
 
       </div>
+
+      {/* Friction Modal for sharing unverified high-risk reports */}
+      {frictionModal.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl">
+            <h3 className="text-lg font-bold text-red-700 mb-2">⚠️ Unverified Report</h3>
+            <p className="text-sm text-gray-700 mb-4">This report has <strong>not been verified</strong>. Sharing false information about elections, security, or emergencies may have legal consequences.</p>
+            <p className="text-xs text-gray-500 mb-4">Please ensure you have reason to believe this report is accurate before sharing.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setFrictionModal({ show: false, countdown: 3, action: null })}
+                className="flex-1 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">Cancel</button>
+              <button onClick={() => { frictionModal.action?.(); setFrictionModal({ show: false, countdown: 3, action: null }); }}
+                disabled={frictionModal.countdown > 0}
+                className="flex-1 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed">
+                {frictionModal.countdown > 0 ? `Wait ${frictionModal.countdown}s...` : 'Share Anyway'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
