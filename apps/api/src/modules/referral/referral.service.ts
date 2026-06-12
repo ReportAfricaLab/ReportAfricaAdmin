@@ -29,12 +29,12 @@ export class ReferralService {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    // Check if user already has a referral as referrer (use their first code)
+    // Check if user already has a referral code stored
     const existing = await this.referralRepo.findOne({ where: { referrerId: userId } });
     if (existing) return existing.referralCode;
 
-    // Generate and return (will be stored when someone uses it)
-    return this.generateCode(userId);
+    // Generate, persist, and return
+    return this.seedCode(userId);
   }
 
   async applyReferralCode(refereeId: string, code: string) {
@@ -119,11 +119,14 @@ export class ReferralService {
       relations: ['referee'],
     });
 
+    // Exclude self-reference placeholder from stats
+    const realReferrals = referrals.filter(r => r.refereeId !== userId);
+
     return {
       code: referrals.length > 0 ? referrals[0].referralCode : this.generateCode(userId),
-      totalReferred: referrals.length,
-      rewardsPaid: referrals.filter((r) => r.rewardPaid).length,
-      referrals: referrals.map((r) => ({
+      totalReferred: realReferrals.length,
+      rewardsPaid: realReferrals.filter((r) => r.rewardPaid).length,
+      referrals: realReferrals.map((r) => ({
         refereeUsername: r.referee?.username,
         rewardPaid: r.rewardPaid,
         createdAt: r.createdAt,
