@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminGuard } from '../../common/guards/admin.guard';
 import { AdminService } from './admin.service';
@@ -92,5 +92,11 @@ export class AdminController {
   @Get('event-mode')
   getEventMode() {
     return this.service.getEventMode();
+  }
+
+  // === SECURITY ALERT (regional data wipe notification) ===
+  @Post('security-alert')
+  sendSecurityAlert(@Body() body: { country: string; message?: string }) {
+    return this.service.sendSecurityAlert(body.country, body.message);
   }
 }

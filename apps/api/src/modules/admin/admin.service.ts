@@ -4,6 +4,7 @@ import { Repository, Like, In } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { UserEntity, ReportEntity, CampaignEntity, MediaLicenseEntity, EarningsEntity } from '../../database/entities';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AdminService {
@@ -14,6 +15,7 @@ export class AdminService {
     @InjectRepository(MediaLicenseEntity) private readonly licenseRepo: Repository<MediaLicenseEntity>,
     @InjectRepository(EarningsEntity) private readonly earningsRepo: Repository<EarningsEntity>,
     @Optional() @Inject(CACHE_MANAGER) private readonly cache?: Cache,
+    @Optional() private readonly notifications?: NotificationsService,
   ) {}
 
   // === USERS ===
@@ -166,5 +168,15 @@ export class AdminService {
     if (!this.cache) return { eventMode: false };
     const mode = await this.cache.get<string>('event_mode');
     return { eventMode: !!mode };
+  }
+
+  async sendSecurityAlert(country: string, message?: string) {
+    if (!this.notifications) return { sent: false };
+    await this.notifications.sendToCountry(country, {
+      title: '🚨 Security Alert',
+      body: message || 'For your safety, clear your local app data immediately. Go to Profile → Clear My Data.',
+      data: { type: 'security_alert', action: 'clear_data' },
+    });
+    return { sent: true, country };
   }
 }
