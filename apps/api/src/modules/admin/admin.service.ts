@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, In } from 'typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { UserEntity, ReportEntity, CampaignEntity, MediaLicenseEntity, EarningsEntity } from '../../database/entities';
 
 @Injectable()
@@ -11,6 +13,7 @@ export class AdminService {
     @InjectRepository(CampaignEntity) private readonly campaignRepo: Repository<CampaignEntity>,
     @InjectRepository(MediaLicenseEntity) private readonly licenseRepo: Repository<MediaLicenseEntity>,
     @InjectRepository(EarningsEntity) private readonly earningsRepo: Repository<EarningsEntity>,
+    @Optional() @Inject(CACHE_MANAGER) private readonly cache?: Cache,
   ) {}
 
   // === USERS ===
@@ -146,5 +149,22 @@ export class AdminService {
       .getRawMany();
 
     return { totalUsers, totalReports, totalCampaigns, pendingCampaigns, usersByCountry };
+  }
+
+  // === CIRCUIT BREAKER ===
+  async toggleEventMode(active: boolean) {
+    if (!this.cache) return { eventMode: false };
+    if (active) {
+      await this.cache.set('event_mode', 'active', 86400000); // 24h TTL
+    } else {
+      await this.cache.del('event_mode');
+    }
+    return { eventMode: active };
+  }
+
+  async getEventMode() {
+    if (!this.cache) return { eventMode: false };
+    const mode = await this.cache.get<string>('event_mode');
+    return { eventMode: !!mode };
   }
 }

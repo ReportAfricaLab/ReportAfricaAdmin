@@ -82,4 +82,15 @@ export class AdminController {
   getRevenue() {
     return this.service.getRevenue();
   }
+
+  // === CIRCUIT BREAKER (Event Mode) ===
+  @Patch('event-mode')
+  toggleEventMode(@Body() body: { active: boolean }) {
+    return this.service.toggleEventMode(body.active);
+  }
+
+  @Get('event-mode')
+  getEventMode() {
+    return this.service.getEventMode();
+  }
 }

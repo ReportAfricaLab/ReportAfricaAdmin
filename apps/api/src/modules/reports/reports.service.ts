@@ -128,8 +128,10 @@ export class ReportsService {
       if (cached) return cached;
     }
 
+    // Check if circuit breaker (event mode) is active
+    const eventMode = this.cache ? await this.cache.get<string>('event_mode') : null;
+
     if (sort === 'latest') {
-      // Simple chronological query — no scoring
       const [data, total] = await this.reportRepo.findAndCount({
         where: { country },
         order: { createdAt: 'DESC' },
@@ -144,6 +146,10 @@ export class ReportsService {
     }
 
     // Smart feed — use raw query to avoid DISTINCT/ORDER BY conflict
+    // Circuit breaker: when event_mode is active, boost verified x5, demote unverified
+    const verifiedBoost = eventMode ? 5.0 : 1.0;
+    const unverifiedPenalty = eventMode ? -100 : 0;
+
     let scoreExpr = `
       (r.upvotes * 3) +
       (r.comment_count * 2) +
@@ -151,11 +157,11 @@ export class ReportsService {
       (r.downvotes * 2) +
       (COALESCE(a.trust_score, 0) * 0.5) +
       (CASE r.verification_level
-        WHEN 'officially_verified' THEN 50
-        WHEN 'ai_verified' THEN 30
-        WHEN 'community_verified' THEN 20
-        WHEN 'trusted_reporter_verified' THEN 25
-        ELSE 0
+        WHEN 'officially_verified' THEN ${50 * verifiedBoost}
+        WHEN 'ai_verified' THEN ${30 * verifiedBoost}
+        WHEN 'community_verified' THEN ${20 * verifiedBoost}
+        WHEN 'trusted_reporter_verified' THEN ${25 * verifiedBoost}
+        ELSE ${unverifiedPenalty}
       END) +
       (CASE r.severity
         WHEN 'critical' THEN 40
