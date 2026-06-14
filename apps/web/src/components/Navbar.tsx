@@ -126,6 +126,7 @@ export default function Navbar() {
                         { href: '/tip-packs', icon: '💳', label: 'Tip Packs' },
                         { href: '/watchlist', icon: '📍', label: 'Watchlists' },
                         { href: '/referral', icon: '🎁', label: 'Referral' },
+                        { href: 'https://reportafrica-academy.vercel.app', icon: '🎓', label: 'Academy' },
                         { href: '/profile/licenses', icon: '📄', label: 'Licenses' },
                       ].map((item) => (
                         <Link key={item.href} href={item.href} onClick={() => setShowDropdown(false)}

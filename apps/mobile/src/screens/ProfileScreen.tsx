@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Image, Alert, Switch } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Image, Alert, Switch, Linking } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { useAppStore } from '../store/useAppStore';
@@ -192,6 +192,8 @@ export default function ProfileScreen() {
         {[
           { screen: 'Followers', icon: '👥', label: 'Followers & Following', params: { userId: user?.id } },
           { screen: 'LicenseRequests', icon: '📄', label: 'License Requests' },
+          { screen: 'Subscription', icon: '⭐', label: 'Premium Reporter' },
+          { screen: 'Business', icon: '🏪', label: 'Business Badges' },
         ].map((item) => (
           <TouchableOpacity key={item.screen} style={[styles.menuItem, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => navigation.navigate(item.screen, item.params)}>
             <Text style={styles.menuIcon}>{item.icon}</Text>
@@ -267,6 +269,13 @@ export default function ProfileScreen() {
       }}>
         <Text style={styles.wipeText}>🗑️ Clear My Data</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.academyBtn} onPress={() => {
+        const { token: t } = useAppStore.getState();
+        Linking.openURL(`https://reportafrica-academy.vercel.app/auth?token=${t || ''}`);
+      }}>
+        <Text style={styles.academyBtnText}>🎓 Journalist Academy</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -315,6 +324,8 @@ const styles = StyleSheet.create({
   pickerTextActive: { color: '#fff', fontWeight: '600' },
   logoutBtn: { marginHorizontal: 16, marginTop: 20, paddingVertical: 14, backgroundColor: '#fef2f2', borderRadius: theme.borderRadius.md, alignItems: 'center' },
   logoutText: { color: '#dc2626', fontSize: theme.fontSize.md, fontWeight: '600' },
-  wipeBtn: { marginHorizontal: 16, marginTop: 10, marginBottom: 40, paddingVertical: 14, backgroundColor: '#f3f4f6', borderRadius: theme.borderRadius.md, alignItems: 'center' },
+  wipeBtn: { marginHorizontal: 16, marginTop: 10, marginBottom: 10, paddingVertical: 14, backgroundColor: '#f3f4f6', borderRadius: theme.borderRadius.md, alignItems: 'center' },
   wipeText: { color: '#6b7280', fontSize: theme.fontSize.sm, fontWeight: '500' },
+  academyBtn: { marginHorizontal: 16, marginBottom: 40, paddingVertical: 14, backgroundColor: '#ecfdf5', borderRadius: theme.borderRadius.md, alignItems: 'center' },
+  academyBtnText: { color: '#065f46', fontSize: theme.fontSize.md, fontWeight: '600' },
 });
