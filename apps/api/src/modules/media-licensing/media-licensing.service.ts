@@ -99,7 +99,7 @@ export class MediaLicensingService {
         accountNumber: reporter.bankAccountNumber,
         accountName: reporter.bankAccountName,
       },
-      platformSplitPercent: 50,
+      platformSplitPercent: reporter.isCertified ? 30 : 50,
       metadata: { licenseId, reporterId: license.reporterId, reportId: license.reportId },
     });
 
@@ -118,8 +118,10 @@ export class MediaLicensingService {
     const license = await this.licenseRepo.findOne({ where: { id: metadata.licenseId } });
     if (!license) return;
 
-    // Record reporter earnings (50% of total)
-    const reporterAmount = license.offeredAmount * 0.5;
+    // Record reporter earnings (certified: 70%, normal: 50%)
+    const reporter = await this.userRepo.findOne({ where: { id: license.reporterId } });
+    const reporterSplit = reporter?.isCertified ? 0.70 : 0.50;
+    const reporterAmount = license.offeredAmount * reporterSplit;
     await this.earningsService.recordEarning({
       reporterId: license.reporterId,
       amount: reporterAmount,

@@ -49,7 +49,7 @@ function getCurrencyForCountry(country: string): string {
   return 'USD'; // Fallback for unsupported countries
 }
 
-const PLATFORM_CUT = 0.20; // 20%
+const PLATFORM_CUT = 0.40; // 40% for normal users (certified get 20%)
 
 @Injectable()
 export class TipsService {
@@ -192,7 +192,9 @@ export class TipsService {
       throw new BadRequestException('Cross-country tipping is not yet available for this region. Coming soon!');
     }
 
-    const platformCut = contextType === 'livestream' ? 0.30 : PLATFORM_CUT;
+    const platformCut = contextType === 'livestream'
+      ? (reporter.isCertified ? 0.30 : 0.40)
+      : (reporter.isCertified ? 0.20 : PLATFORM_CUT);
     const reporterAmount = Math.round(dto.amount * (1 - platformCut));
 
     // Convert to reporter's currency if needed
@@ -316,7 +318,8 @@ export class TipsService {
     if (pendingTips.length === 0) return;
 
     for (const tip of pendingTips) {
-      const reporterAmount = Math.round(Number(tip.amount) * (1 - PLATFORM_CUT));
+      const pendingCut = reporter.isCertified ? 0.20 : PLATFORM_CUT;
+      const reporterAmount = Math.round(Number(tip.amount) * (1 - pendingCut));
       const reporterCurrency = getCurrencyForCountry(reporter.country);
       const tipCurrency = tip.currency || 'NGN';
       const isCrossCurrency = tipCurrency !== reporterCurrency;
