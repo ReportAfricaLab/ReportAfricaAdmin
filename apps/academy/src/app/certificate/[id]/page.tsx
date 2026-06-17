@@ -72,7 +72,7 @@ export default function CertificatePage() {
           {/* Date & Details */}
           <p className="text-sm text-gray-600 mb-1">Issued on <strong>{date}</strong></p>
           <p className="text-xs text-gray-400 font-mono mt-4">Certificate ID: {certId}</p>
-          <p className="text-xs text-gray-400 mt-1">Verify at: reportafrica-academy-amber.vercel.app/verify/{certId}</p>
+          <p className="text-xs text-gray-400 mt-1">Verify at: academy.reportafrica.africa/verify/{certId}</p>
 
           {/* Footer */}
           <div className="mt-10 pt-6 border-t border-gray-100">
