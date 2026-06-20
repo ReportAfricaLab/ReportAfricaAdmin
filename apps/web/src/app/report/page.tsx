@@ -221,6 +221,27 @@ function ReportContent() {
         )}
         <h1 className="text-2xl font-bold text-gray-900 mb-3">{report.aiHeadline || report.title}</h1>
         <p className="text-gray-600 leading-relaxed mb-3">{translatedText || report.description}</p>
+
+        {/* Media - Images and Videos */}
+        {report.media && report.media.length > 0 && report.media[0]?.url && (
+          <div className="mb-4 space-y-2">
+            {report.media.map((m: any, i: number) => (
+              <div key={i} className="rounded-xl overflow-hidden">
+                {m.type?.startsWith('video') ? (
+                  <video
+                    src={m.url}
+                    className="w-full aspect-video object-contain bg-gray-900 rounded-xl"
+                    controls
+                    playsInline
+                    preload="metadata"
+                  />
+                ) : (
+                  <img src={m.url} alt={report.title} className="w-full rounded-xl object-cover max-h-[500px]" />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
         <button type="button" onClick={async () => {
           if (translatedText) { setTranslatedText(''); return; }
           setTranslating(true);
