@@ -1,4 +1,21 @@
-import { IsString, IsNumber, IsOptional, IsBoolean, IsArray, MaxLength, IsIn } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsBoolean, IsArray, MaxLength, IsIn, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class MediaItemDto {
+  @IsString()
+  type: string;
+
+  @IsString()
+  url: string;
+
+  @IsString()
+  @IsOptional()
+  thumbnailUrl?: string;
+
+  @IsNumber()
+  @IsOptional()
+  duration?: number;
+}
 
 export class CreateReportDto {
   @IsString()
@@ -46,7 +63,9 @@ export class CreateReportDto {
 
   @IsArray()
   @IsOptional()
-  media?: { type: string; url: string; thumbnailUrl?: string; duration?: number }[];
+  @ValidateNested({ each: true })
+  @Type(() => MediaItemDto)
+  media?: MediaItemDto[];
 
   @IsString()
   @IsOptional()
