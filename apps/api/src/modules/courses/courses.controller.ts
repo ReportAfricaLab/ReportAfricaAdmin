@@ -48,6 +48,12 @@ export class CoursesController {
     return this.service.getMyEnrollments(req.user.id);
   }
 
+  @Get('my-badges')
+  @UseGuards(AuthGuard('jwt'))
+  getMyBadges(@Request() req: any) {
+    return this.service.getUserBadges(req.user.id);
+  }
+
   @Get(':id')
   getById(@Param('id') id: string) {
     return this.service.getCourseById(id);

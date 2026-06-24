@@ -205,6 +205,10 @@ export class CoursesService {
       if (!enrollment.completedAt) {
         enrollment.completedAt = new Date();
         enrollment.certificateId = this.generateCertId();
+
+        // Award badge + tip balance reward
+        await this.awardCourseCompletionReward(userId, courseId, course.title, course.sortOrder);
+
         // Check master certificate
         await this.checkMasterCertificate(userId);
       }
@@ -225,14 +229,38 @@ export class CoursesService {
           certificateId: 'RA-MASTER-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
         });
         await this.enrollmentRepo.save(master);
-        // Set user as certified
+        // Set user as certified + award all_courses badge + bonus
         await this.enrollmentRepo.manager.getRepository('UserEntity').update(userId, { isCertified: true });
+        await this.enrollmentRepo.manager.getRepository('BadgeEntity').save({ userId, badgeType: 'all_courses_completed', title: 'Master Journalist', icon: '🏆' });
+        await this.enrollmentRepo.manager.getRepository('UserEntity').increment({ id: userId }, 'tipBalance', 5000);
       }
     }
   }
 
+  private async awardCourseCompletionReward(userId: string, courseId: string, courseTitle: string, sortOrder: number) {
+    const BadgeRepo = this.enrollmentRepo.manager.getRepository('BadgeEntity');
+    const UserRepo = this.enrollmentRepo.manager.getRepository('UserEntity');
+
+    // Check if badge already awarded
+    const existing = await BadgeRepo.findOne({ where: { userId, badgeType: 'course_completed', courseId } });
+    if (existing) return;
+
+    // Award badge
+    await BadgeRepo.save({ userId, badgeType: 'course_completed', courseId, title: `${courseTitle} Complete`, icon: '🎓' });
+
+    // Award tip balance based on course
+    // Course 3 (investigative) = 1000, others = 500
+    const reward = sortOrder === 3 ? 1000 : 500;
+    await UserRepo.increment({ id: userId }, 'tipBalance', reward);
+  }
+
   async getMyEnrollments(userId: string) {
     return this.enrollmentRepo.find({ where: { userId }, relations: ['course'], order: { createdAt: 'DESC' } });
+  }
+
+  async getUserBadges(userId: string) {
+    const BadgeRepo = this.enrollmentRepo.manager.getRepository('BadgeEntity');
+    return BadgeRepo.find({ where: { userId }, order: { earnedAt: 'DESC' } });
   }
 
   async getCourseProgress(userId: string, courseId: string) {

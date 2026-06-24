@@ -21,3 +21,4 @@ export { LessonEntity } from './lesson.entity';
 export { ModuleEntity } from './module.entity';
 export { EnrollmentEntity } from './enrollment.entity';
 export { QuizEntity, QuizQuestionEntity, QuizAttemptEntity } from './quiz.entity';
+export { BadgeEntity } from './badge.entity';

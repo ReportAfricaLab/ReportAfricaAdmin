@@ -159,6 +159,16 @@ async function bootstrap() {
         );
         CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user ON quiz_attempts(user_id);
         CREATE INDEX IF NOT EXISTS idx_quiz_attempts_quiz ON quiz_attempts(quiz_id);
+        CREATE TABLE IF NOT EXISTS badges (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID REFERENCES users(id),
+          badge_type VARCHAR NOT NULL,
+          course_id UUID DEFAULT NULL,
+          title VARCHAR,
+          icon VARCHAR,
+          earned_at TIMESTAMP DEFAULT NOW()
+        );
+        CREATE INDEX IF NOT EXISTS idx_badges_user ON badges(user_id);
       `);
       logger.log('Startup migration: livestreams columns verified');
     } catch (err) {
