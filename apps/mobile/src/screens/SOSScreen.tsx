@@ -15,6 +15,9 @@ const EMERGENCY_TYPES = [
   { key: 'security_threat', label: '🚨 Security', color: '#991B1B' },
   { key: 'building_collapse', label: '🏚️ Collapse', color: '#78350F' },
   { key: 'medical', label: '🏥 Medical', color: '#059669' },
+  { key: 'power_line', label: '⚡ Electrocution', color: '#FBBF24' },
+  { key: 'animal_attack', label: '🐍 Animal', color: '#65A30D' },
+  { key: 'gas_explosion', label: '💨 Gas/Explosion', color: '#6B21A8' },
 ];
 
 export default function SOSScreen() {

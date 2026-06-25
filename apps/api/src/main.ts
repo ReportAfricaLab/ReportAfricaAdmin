@@ -211,6 +211,22 @@ async function bootstrap() {
         );
         CREATE INDEX IF NOT EXISTS idx_business_responses_report ON business_responses(report_id);
         CREATE INDEX IF NOT EXISTS idx_business_responses_business ON business_responses(business_id);
+        CREATE TABLE IF NOT EXISTS trips (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID REFERENCES users(id),
+          shared_with_user_id UUID REFERENCES users(id),
+          start_lat DECIMAL(10,7) NOT NULL,
+          start_lng DECIMAL(10,7) NOT NULL,
+          current_lat DECIMAL(10,7) NOT NULL,
+          current_lng DECIMAL(10,7) NOT NULL,
+          destination VARCHAR DEFAULT NULL,
+          is_active BOOLEAN DEFAULT TRUE,
+          started_at TIMESTAMP DEFAULT NOW(),
+          ended_at TIMESTAMP DEFAULT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_trips_user ON trips(user_id);
+        CREATE INDEX IF NOT EXISTS idx_trips_shared ON trips(shared_with_user_id);
+        CREATE INDEX IF NOT EXISTS idx_trips_active ON trips(is_active);
       `);
       logger.log('Startup migration: livestreams columns verified');
     } catch (err) {

@@ -6,7 +6,7 @@ import { EmergencyService } from './emergency.service';
 class TriggerSOSDto {
   @IsNumber() latitude: number;
   @IsNumber() longitude: number;
-  @IsString() @IsIn(['fire', 'violence', 'accident', 'flood', 'security_threat', 'building_collapse', 'medical'])
+  @IsString() @IsIn(['fire', 'violence', 'accident', 'flood', 'security_threat', 'building_collapse', 'medical', 'power_line', 'animal_attack', 'gas_explosion'])
   type: string;
   @IsString() @IsOptional() description?: string;
   @IsOptional() broadcast?: boolean;

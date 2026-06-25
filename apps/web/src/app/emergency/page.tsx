@@ -13,6 +13,9 @@ const EMERGENCY_TYPES = [
   { key: 'security_threat', label: '🚨 Security Threat', color: '#991B1B' },
   { key: 'building_collapse', label: '🏚️ Building Collapse', color: '#78350F' },
   { key: 'medical', label: '🏥 Medical Emergency', color: '#059669' },
+  { key: 'power_line', label: '⚡ Power Line/Electrocution', color: '#FBBF24' },
+  { key: 'animal_attack', label: '🐍 Animal/Snake Attack', color: '#65A30D' },
+  { key: 'gas_explosion', label: '💨 Gas Leak/Explosion', color: '#6B21A8' },
 ];
 
 export default function EmergencyPage() {

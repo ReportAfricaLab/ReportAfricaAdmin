@@ -43,6 +43,7 @@ import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { CoursesModule } from './modules/courses/courses.module';
 import { QuizModule } from './modules/quiz/quiz.module';
 import { ChallengesModule } from './modules/challenges/challenges.module';
+import { TripsModule } from './modules/trips/trips.module';
 
 @Module({
   imports: [
@@ -132,6 +133,7 @@ import { ChallengesModule } from './modules/challenges/challenges.module';
     CoursesModule,
     QuizModule,
     ChallengesModule,
+    TripsModule,
   ],
 })
 export class AppModule {}

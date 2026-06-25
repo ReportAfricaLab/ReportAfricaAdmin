@@ -261,6 +261,7 @@ export default function HomeScreen() {
                 { screen: 'Earnings', icon: '💰', label: 'My Earnings' },
                 { screen: 'TrustProfile', icon: '🛡️', label: 'Trust Profile' },
                 { screen: 'Watchlist', icon: '📍', label: 'Watchlists' },
+                { screen: 'SafeTrip', icon: '🛡️', label: 'Safe Trip' },
                 { screen: 'Referral', icon: '🎁', label: 'Referral Program' },
                 { screen: 'BuyTipPack', icon: '💳', label: 'Buy Tip Pack' },
               ].map((item) => (

@@ -24,3 +24,4 @@ export { QuizEntity, QuizQuestionEntity, QuizAttemptEntity } from './quiz.entity
 export { BadgeEntity } from './badge.entity';
 export { ChallengeEntity, ChallengeEntryEntity } from './challenge.entity';
 export { BusinessResponseEntity } from './business-response.entity';
+export { TripEntity } from './trip.entity';

@@ -49,6 +49,7 @@ const NAV_LINKS = [
   { href: '/business', icon: '🏪', label: 'Business' },
   { href: '/leaderboard', icon: '🏆', label: 'Leaderboard' },
   { href: '/watchlist', icon: '📍', label: 'Watchlists' },
+  { href: '/safe-trip', icon: '🛡️', label: 'Safe Trip' },
 ];
 
 function SponsoredPost({ business }: { business?: any }) {

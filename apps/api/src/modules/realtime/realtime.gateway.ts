@@ -167,4 +167,8 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayInit {
   getViewerCount(streamId: string): number {
     return this.viewerCounts.get(`stream:${streamId}`) || 0;
   }
+
+  emitTripUpdate(watcherUserId: string, data: any) {
+    this.server.emit(`trip:${watcherUserId}`, data);
+  }
 }

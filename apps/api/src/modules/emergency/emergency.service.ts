@@ -83,8 +83,8 @@ export class EmergencyService {
       .where('report.country = :country', { country })
       .andWhere('report.category = :category', { category: 'emergency' })
       .andWhere('report.severity = :severity', { severity: 'critical' })
-      .andWhere('report."created_at" > :oneHourAgo', { oneHourAgo })
-      .orderBy('report."created_at"', 'DESC')
+      .andWhere('report.createdAt > :oneHourAgo', { oneHourAgo })
+      .orderBy('report.createdAt', 'DESC')
       .take(20)
       .getMany();
   }
@@ -98,6 +98,9 @@ export class EmergencyService {
       security_threat: 'Security Threat',
       building_collapse: 'Building Collapse',
       medical: 'Medical Emergency',
+      power_line: 'Power Line/Electrocution',
+      animal_attack: 'Animal/Snake Attack',
+      gas_explosion: 'Gas Leak/Explosion',
     };
     return labels[type] || 'Emergency';
   }
