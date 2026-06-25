@@ -16,6 +16,7 @@ const NAV = [
   { label: 'Academy', href: '/courses', icon: '🎓', roles: ['super_admin', 'admin', 'content_manager'] },
   { label: 'Revenue', href: '/revenue', icon: '💎', roles: ['super_admin', 'admin', 'finance_admin'] },
   { label: 'Moderation', href: '/moderation', icon: '⚠️', roles: ['super_admin', 'admin', 'content_manager', 'support_admin'] },
+  { label: 'AI Moderation', href: '/ai', icon: '🤖', roles: ['super_admin', 'admin', 'content_manager'] },
   { label: 'Team', href: '/team', icon: '🔑', roles: ['super_admin', 'admin'] },
 ];
 

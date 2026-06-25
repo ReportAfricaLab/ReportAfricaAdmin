@@ -100,6 +100,9 @@ export class UserEntity {
   @Column({ name: 'is_certified', default: false })
   isCertified: boolean;
 
+  @Column({ name: 'account_status', default: 'active' })
+  accountStatus: string; // active, suspended, banned
+
   @Column({ name: 'is_email_verified', default: false })
   isEmailVerified: boolean;
 

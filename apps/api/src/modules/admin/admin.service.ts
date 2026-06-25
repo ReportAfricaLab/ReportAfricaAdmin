@@ -50,13 +50,25 @@ export class AdminService {
   }
 
   async banUser(id: string) {
-    return this.updateUser(id, { role: 'banned' as any });
+    await this.userRepo.update(id, { accountStatus: 'banned' });
+    return { status: 'banned', userId: id };
+  }
+
+  async suspendUser(id: string) {
+    await this.userRepo.update(id, { accountStatus: 'suspended' });
+    return { status: 'suspended', userId: id };
+  }
+
+  async liftRestriction(id: string) {
+    await this.userRepo.update(id, { accountStatus: 'active' });
+    return { status: 'active', userId: id };
   }
 
   // === REPORTS ===
   async getReports(page = 1, limit = 20, country?: string, category?: string, flagged?: boolean) {
     const query = this.reportRepo.createQueryBuilder('report')
       .leftJoinAndSelect('report.author', 'author')
+      .where('report.verificationLevel != :deleted', { deleted: 'deleted' })
       .orderBy('report.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit);
@@ -72,7 +84,7 @@ export class AdminService {
   async deleteReport(id: string) {
     const report = await this.reportRepo.findOne({ where: { id } });
     if (!report) throw new NotFoundException('Report not found');
-    await this.reportRepo.remove(report);
+    await this.reportRepo.update(id, { verificationLevel: 'deleted' });
     return { deleted: true };
   }
 
@@ -265,6 +277,26 @@ export class AdminService {
   // === TEAM MANAGEMENT ===
   private static ADMIN_ROLES = ['super_admin', 'admin', 'content_manager', 'finance_admin', 'support_admin'];
   private static CAN_INVITE = ['super_admin', 'admin'];
+
+  // === AI MODERATION ===
+  async getAIDecisions() {
+    const reports = await this.reportRepo.find({
+      where: { verificationLevel: In(['unverified', 'ai_flagged']) },
+      order: { createdAt: 'DESC' },
+      take: 50,
+      relations: ['author'],
+    });
+    return { reports };
+  }
+
+  async aiOverride(id: string, action: string) {
+    if (action === 'approve') {
+      await this.reportRepo.update(id, { verificationLevel: 'community_verified' });
+    } else if (action === 'flag') {
+      await this.reportRepo.update(id, { verificationLevel: 'ai_flagged' });
+    }
+    return { overridden: true, action };
+  }
 
   async getTeam() {
     const team = await this.userRepo.find({

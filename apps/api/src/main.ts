@@ -227,6 +227,7 @@ async function bootstrap() {
         CREATE INDEX IF NOT EXISTS idx_trips_user ON trips(user_id);
         CREATE INDEX IF NOT EXISTS idx_trips_shared ON trips(shared_with_user_id);
         CREATE INDEX IF NOT EXISTS idx_trips_active ON trips(is_active);
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS account_status VARCHAR DEFAULT 'active';
       `);
       logger.log('Startup migration: livestreams columns verified');
     } catch (err) {

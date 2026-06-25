@@ -30,6 +30,8 @@ export const adminAPI = {
   },
   updateUser: (id: string, data: any) => adminFetch(`/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   banUser: (id: string) => adminFetch(`/admin/users/${id}/ban`, { method: 'PATCH' }),
+  suspendUser: (id: string) => adminFetch(`/admin/users/${id}/suspend`, { method: 'PATCH' }),
+  liftRestriction: (id: string) => adminFetch(`/admin/users/${id}/lift`, { method: 'PATCH' }),
 
   // Reports
   reports: (page = 1, country?: string, flagged?: boolean) => {
@@ -76,6 +78,10 @@ export const adminAPI = {
 
   // Tips
   tips: () => adminFetch('/admin/tips'),
+
+  // AI
+  aiDecisions: () => adminFetch('/admin/ai/decisions'),
+  aiOverride: (id: string, action: string) => adminFetch(`/admin/ai/${id}/override`, { method: 'PATCH', body: JSON.stringify({ action }) }),
 
   // Moderation
   moderationQueue: (page = 1) => adminFetch(`/admin/moderation-queue?page=${page}`),

@@ -5,9 +5,29 @@ import { adminAPI } from '@/lib/api';
 export default function ReportsPage() {
   const [data, setData] = useState<any>(null);
   const [flaggedOnly, setFlaggedOnly] = useState(false);
+  const [message, setMessage] = useState('');
 
   const load = () => adminAPI.reports(1, undefined, flaggedOnly).then(setData).catch(() => {});
   useEffect(() => { load(); }, [flaggedOnly]);
+
+  const handleVerify = async (id: string) => {
+    try {
+      await adminAPI.verifyReport(id, 'community_verified');
+      setMessage('✅ Report verified');
+      setData((prev: any) => prev ? { ...prev, reports: prev.reports.filter((r: any) => r.id !== id) } : prev);
+    } catch (e: any) { setMessage('❌ ' + (e.message || 'Failed')); }
+    setTimeout(() => setMessage(''), 3000);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this report permanently?')) return;
+    try {
+      await adminAPI.deleteReport(id);
+      setMessage('✅ Report deleted');
+      setData((prev: any) => prev ? { ...prev, reports: prev.reports.filter((r: any) => r.id !== id) } : prev);
+    } catch (e: any) { setMessage('❌ ' + (e.message || 'Failed')); }
+    setTimeout(() => setMessage(''), 3000);
+  };
 
   return (
     <div>
@@ -20,6 +40,8 @@ export default function ReportsPage() {
         </label>
       </div>
 
+      {message && <div className="mb-4 p-3 rounded-lg bg-gray-800 border border-gray-700 text-sm">{message}</div>}
+
       <div className="space-y-3">
         {data?.reports?.map((r: any) => (
           <div key={r.id} className="bg-gray-800 rounded-xl border border-gray-700 p-5">
@@ -31,15 +53,18 @@ export default function ReportsPage() {
                   </span>
                   <span className="text-xs text-gray-500 capitalize">{r.category?.replace('_', ' ')}</span>
                   <span className="text-xs text-gray-600">{r.country}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded ${r.verificationLevel === 'community_verified' ? 'bg-emerald-600/20 text-emerald-400' : 'bg-gray-700 text-gray-400'}`}>
+                    {r.verificationLevel}
+                  </span>
                 </div>
                 <h3 className="font-medium text-gray-100">{r.title}</h3>
                 <p className="text-sm text-gray-400 mt-1 line-clamp-2">{r.description}</p>
                 <p className="text-xs text-gray-600 mt-2">By: {r.author?.username || 'Anonymous'} · {new Date(r.createdAt).toLocaleDateString()}</p>
               </div>
               <div className="flex gap-2 ml-4">
-                <button onClick={() => adminAPI.verifyReport(r.id, 'community_verified').then(load).catch((e: any) => alert(e.message || 'Failed to verify'))}
+                <button onClick={() => handleVerify(r.id)}
                   className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-500">Verify</button>
-                <button onClick={() => { if (confirm('Delete this report permanently?')) adminAPI.deleteReport(r.id).then(load).catch((e: any) => alert(e.message || 'Failed to delete')); }}
+                <button onClick={() => handleDelete(r.id)}
                   className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-500">Delete</button>
               </div>
             </div>

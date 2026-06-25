@@ -34,6 +34,16 @@ export class AdminController {
     return this.service.banUser(id);
   }
 
+  @Patch('users/:id/suspend')
+  suspendUser(@Param('id') id: string) {
+    return this.service.suspendUser(id);
+  }
+
+  @Patch('users/:id/lift')
+  liftRestriction(@Param('id') id: string) {
+    return this.service.liftRestriction(id);
+  }
+
   // === REPORTS ===
   @Get('reports')
   getReports(
@@ -180,5 +190,16 @@ export class AdminController {
   @Get('me')
   getMe(@Req() req: any) {
     return { id: req.adminUser.id, email: req.adminUser.email, username: req.adminUser.username, displayName: req.adminUser.displayName, role: req.adminUser.role };
+  }
+
+  // === AI MODERATION ===
+  @Get('ai/decisions')
+  getAIDecisions() {
+    return this.service.getAIDecisions();
+  }
+
+  @Patch('ai/:id/override')
+  aiOverride(@Param('id') id: string, @Body() body: { action: string }) {
+    return this.service.aiOverride(id, body.action);
   }
 }
