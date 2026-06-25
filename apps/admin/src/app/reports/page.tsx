@@ -37,9 +37,9 @@ export default function ReportsPage() {
                 <p className="text-xs text-gray-600 mt-2">By: {r.author?.username || 'Anonymous'} · {new Date(r.createdAt).toLocaleDateString()}</p>
               </div>
               <div className="flex gap-2 ml-4">
-                <button onClick={() => adminAPI.verifyReport(r.id, 'community_verified').then(load)}
+                <button onClick={() => adminAPI.verifyReport(r.id, 'community_verified').then(load).catch((e: any) => alert(e.message || 'Failed to verify'))}
                   className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-500">Verify</button>
-                <button onClick={() => adminAPI.deleteReport(r.id).then(load)}
+                <button onClick={() => { if (confirm('Delete this report permanently?')) adminAPI.deleteReport(r.id).then(load).catch((e: any) => alert(e.message || 'Failed to delete')); }}
                   className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-500">Delete</button>
               </div>
             </div>
