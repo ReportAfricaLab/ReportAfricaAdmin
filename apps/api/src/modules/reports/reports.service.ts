@@ -66,6 +66,9 @@ export class ReportsService {
       severity: dto.severity || 'medium',
       media: dto.media || [],
       verificationLevel: modResult.suggestedVerification || 'unverified',
+      aiHeadline: modResult.aiHeadline || null,
+      aiModerationScore: modResult.confidence ? Math.round(modResult.confidence * 100) : null,
+      aiFlags: modResult.flags?.length > 0 ? modResult.flags.join(',') : null,
     });
 
     const saved = await this.reportRepo.save(report);

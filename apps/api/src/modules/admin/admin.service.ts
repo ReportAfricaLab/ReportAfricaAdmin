@@ -144,13 +144,14 @@ export class AdminService {
 
   // === MODERATION QUEUE ===
   async getModerationQueue(page = 1, limit = 20) {
-    const [reports, total] = await this.reportRepo.findAndCount({
-      where: { verificationLevel: 'unverified' },
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-      relations: ['author'],
-    });
+    const [reports, total] = await this.reportRepo.createQueryBuilder('report')
+      .leftJoinAndSelect('report.author', 'author')
+      .where('(report.verificationLevel = :unverified OR report.aiFlags IS NOT NULL)', { unverified: 'unverified' })
+      .andWhere('report.verificationLevel != :deleted', { deleted: 'deleted' })
+      .orderBy('report.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
     return { reports, total, page, totalPages: Math.ceil(total / limit) };
   }
 
@@ -281,12 +282,11 @@ export class AdminService {
   // === AI MODERATION ===
   async getAIDecisions() {
     const reports = await this.reportRepo.find({
-      where: { verificationLevel: In(['unverified', 'ai_flagged']) },
       order: { createdAt: 'DESC' },
       take: 50,
       relations: ['author'],
     });
-    return { reports };
+    return { reports: reports.filter(r => r.verificationLevel !== 'deleted') };
   }
 
   async aiOverride(id: string, action: string) {

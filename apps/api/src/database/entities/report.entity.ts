@@ -93,6 +93,15 @@ export class ReportEntity {
   @Column({ name: 'content_hash', nullable: true })
   contentHash: string;
 
+  @Column({ name: 'ai_headline', nullable: true })
+  aiHeadline: string;
+
+  @Column({ name: 'ai_moderation_score', type: 'int', nullable: true })
+  aiModerationScore: number;
+
+  @Column({ name: 'ai_flags', nullable: true })
+  aiFlags: string;
+
   @CreateDateColumn({ name: 'created_at' })
   @Index()
   createdAt: Date;
