@@ -35,6 +35,7 @@ export default function ElectionsPage() {
   const [election, setElection] = useState('2027 General Election');
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [quickResult, setQuickResult] = useState(false);
 
   useEffect(() => { loadData(); }, [tab, election]);
 
@@ -79,7 +80,11 @@ export default function ElectionsPage() {
             <option>2027 General Election</option>
             <option>2025 Off-Cycle Governorship</option>
           </select>
-          <button onClick={() => setShowForm(true)}
+          <button onClick={() => { setShowForm(true); setQuickResult(true); }}
+            className="px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-500 transition">
+            📊 Upload Results
+          </button>
+          <button onClick={() => { setShowForm(true); setQuickResult(false); }}
             className="px-4 py-2 text-sm font-semibold text-white bg-[#0F7B6C] rounded-lg hover:bg-[#0B6E4F] transition">
             + Report
           </button>
@@ -186,7 +191,7 @@ export default function ElectionsPage() {
       {!loading && tab === 'live' && <ElectionLiveTab streams={liveStreams} />}
 
       {/* Submit Report Modal */}
-      {showForm && <ElectionReportForm election={election} onClose={() => setShowForm(false)} onSubmitted={() => { setShowForm(false); loadData(); }} />}
+      {showForm && <ElectionReportForm election={election} quickResult={quickResult} onClose={() => setShowForm(false)} onSubmitted={() => { setShowForm(false); loadData(); }} />}
     </div>
   );
 }
@@ -293,8 +298,8 @@ function ElectionLiveTab({ streams }: { streams: any[] }) {
 
 // === Election Report Form ===
 
-function ElectionReportForm({ election, onClose, onSubmitted }: { election: string; onClose: () => void; onSubmitted: () => void }) {
-  const [type, setType] = useState('');
+function ElectionReportForm({ election, quickResult, onClose, onSubmitted }: { election: string; quickResult?: boolean; onClose: () => void; onSubmitted: () => void }) {
+  const [type, setType] = useState(quickResult ? 'result_upload' : '');
   const [state, setState] = useState('');
   const [lga, setLga] = useState('');
   const [ward, setWard] = useState('');

@@ -90,6 +90,9 @@ export default function ElectionsScreen() {
         <View style={styles.headerRow}>
           <Text style={styles.title}>🗳️ Election Monitor</Text>
           <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity style={[styles.reportBtn, { backgroundColor: '#059669' }]} onPress={() => navigation.navigate('CreateElectionReport', { quickResult: true })}>
+              <Text style={styles.reportBtnText}>📊 Results</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={[styles.reportBtn, { backgroundColor: '#000' }]} onPress={() => navigation.navigate('GoLive', { election, state: '' })}>
               <Text style={styles.reportBtnText}>🔴 Go Live</Text>
             </TouchableOpacity>
