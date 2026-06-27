@@ -20,7 +20,7 @@ export default function IncidentsPage() {
       </div>
       <div className="space-y-3">
         {incidents.map((r: any) => (
-          <div key={r.id} className="bg-[#1E293B] rounded-xl p-5 border border-gray-700">
+          <a key={r.id} href={`/report/${r.id}`} className="block bg-[#1E293B] rounded-xl p-5 border border-gray-700 hover:border-blue-500 transition">
             <div className="flex items-center gap-2 mb-2">
               <span className={`px-2 py-0.5 text-[10px] font-bold rounded text-white ${r.severity === 'critical' ? 'bg-red-600' : 'bg-orange-600'}`}>{r.severity?.toUpperCase()}</span>
               <span className="text-xs text-gray-400 capitalize">{r.category?.replace('_', ' ')}</span>
@@ -29,7 +29,7 @@ export default function IncidentsPage() {
             <h3 className="font-medium text-gray-100">{r.title}</h3>
             <p className="text-sm text-gray-400 mt-1 line-clamp-2">{r.description}</p>
             <p className="text-xs text-gray-500 mt-2">{r.state || r.city || ''} · {r.latitude ? `${Number(r.latitude).toFixed(3)}, ${Number(r.longitude).toFixed(3)}` : 'No coords'}</p>
-          </div>
+          </a>
         ))}
         {incidents.length === 0 && <p className="text-gray-500 text-center py-12">No active critical/high incidents</p>}
       </div>

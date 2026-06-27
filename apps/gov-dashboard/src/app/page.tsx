@@ -91,14 +91,14 @@ export default function GovDashboard() {
         <h2 className="font-semibold mb-4">🗺️ Incident Map ({mapReports.length} reports)</h2>
         <div className="grid grid-cols-1 gap-2 max-h-96 overflow-y-auto">
           {mapReports.length > 0 ? mapReports.map((r: any) => (
-            <div key={r.id} className="flex items-center gap-3 p-2 bg-gray-800 rounded-lg">
+            <a key={r.id} href={`/report/${r.id}`} className="flex items-center gap-3 p-2 bg-gray-800 rounded-lg hover:bg-gray-750 transition">
               <span className={`w-2 h-2 rounded-full flex-shrink-0 ${r.severity === 'critical' ? 'bg-red-500' : r.severity === 'high' ? 'bg-orange-500' : 'bg-blue-500'}`} />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-gray-200 truncate">{r.title}</p>
                 <p className="text-[10px] text-gray-500">{r.category} · {r.state || r.city || ''} · {r.latitude ? `${Number(r.latitude).toFixed(3)}, ${Number(r.longitude).toFixed(3)}` : 'No coords'}</p>
               </div>
               <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${r.severity === 'critical' ? 'bg-red-600 text-white' : r.severity === 'high' ? 'bg-orange-600 text-white' : 'bg-blue-600 text-white'}`}>{r.severity}</span>
-            </div>
+            </a>
           )) : <p className="text-gray-500 text-sm text-center py-8">No incidents to display</p>}
         </div>
       </div>
