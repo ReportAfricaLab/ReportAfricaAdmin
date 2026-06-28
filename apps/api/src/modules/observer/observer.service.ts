@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ObserverEntity } from '../../database/entities/observer.entity';
 
-const TIER_CONFIG = {
+const TIER_CONFIG: Record<string, { price: number; seats: number }> = {
   individual: { price: 500, seats: 1 },
   organization: { price: 2000, seats: 5 },
   enterprise: { price: 10000, seats: 20 },
