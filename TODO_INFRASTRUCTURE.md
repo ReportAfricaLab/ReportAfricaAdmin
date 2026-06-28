@@ -63,3 +63,11 @@
 - [ ] Visual comparison table on web elections page
 - [ ] Gov dashboard: side-by-side citizen vs official view
 - [ ] Only activate when official data is available (election day/after)
+
+### Mobile Heat Map (Post-launch, needs native module)
+- [ ] Install `@rnmapbox/maps` (native module)
+- [ ] Configure EAS Build for native Mapbox SDK (iOS pod install + Android gradle)
+- [ ] Add Mapbox access token to app.config / EAS secrets
+- [ ] Build heat map component for mobile Elections Hotspots tab
+- [ ] Test on both iOS and Android EAS builds
+- [ ] Note: Cannot use Expo Go after this — requires development build
