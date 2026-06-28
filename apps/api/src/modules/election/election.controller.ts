@@ -53,6 +53,11 @@ export class ElectionController {
     return this.service.getHotspots(country || 'NG', election);
   }
 
+  @Get('hotspots-geo')
+  getHotspotsGeo(@Query('country') country: string, @Query('election') election: string) {
+    return this.service.getHotspotsGeo(country || 'NG', election);
+  }
+
   @Get('parallel-count')
   getParallelCount(@Query('country') country: string, @Query('election') election: string) {
     return this.service.getParallelCount(country || 'NG', election || '2027 General Election');

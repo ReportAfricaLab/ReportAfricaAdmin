@@ -46,3 +46,20 @@
 - [ ] Increase RDS connection pool to 100+
 - [ ] CloudFront CDN for S3 media delivery
 - [ ] Separate Socket.IO to dedicated service
+
+### Voice Distortion for Reporter Safety (Post-launch, needs ffmpeg)
+- [ ] Add ffmpeg binary to Docker image (~80MB increase)
+- [ ] Bull queue (Redis-backed) for async audio processing
+- [ ] Voice pitch-shift / distortion filter endpoint
+- [ ] Apply distortion to voice notes on reports where reporter opts in
+- [ ] Memory testing on EC2 (ffmpeg is CPU/RAM intensive)
+- [ ] Option in mobile app: "Disguise my voice" toggle on report creation
+
+### Official Results Comparison (Election Day Feature)
+- [ ] Admin UI to input/upload official results per polling unit
+- [ ] CSV bulk upload for official results (INEC format)
+- [ ] Diff comparison logic: citizen-submitted vs official per PU
+- [ ] Discrepancy flagging (highlight PUs where citizen ≠ official by >10%)
+- [ ] Visual comparison table on web elections page
+- [ ] Gov dashboard: side-by-side citizen vs official view
+- [ ] Only activate when official data is available (election day/after)

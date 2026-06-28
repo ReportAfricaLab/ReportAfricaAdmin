@@ -2,6 +2,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import dynamic from 'next/dynamic';
+
+const ElectionHeatMap = dynamic(() => import('@/components/ElectionHeatMap'), { ssr: false });
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -168,28 +171,7 @@ export default function ElectionsPage() {
       )}
 
       {/* Hotspots Tab */}
-      {!loading && tab === 'hotspots' && (
-        <div>
-          {hotspots.length === 0 ? (
-            <EmptyState icon="🗺️" title="No hotspots detected" desc="Hotspots appear when multiple incidents are reported in the same area" />
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {hotspots.map((h: any, i: number) => (
-                <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900">{h.state || 'Unknown'}</h3>
-                    <span className="px-2 py-0.5 text-xs font-bold rounded text-white" style={{ backgroundColor: INCIDENT_COLORS[h.type] || '#6B7280' }}>
-                      {h.type?.replace('_', ' ')}
-                    </span>
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{h.count}</p>
-                  <p className="text-xs text-gray-500">reports</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {!loading && tab === 'hotspots' && <HotspotsTab election={election} hotspots={hotspots} />}
 
       {/* Live Tab */}
       {!loading && tab === 'live' && <ElectionLiveTab streams={liveStreams} />}
@@ -355,6 +337,48 @@ function ParallelCountTab({ election }: { election: string }) {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+// === Hotspots Tab with Heat Map ===
+
+function HotspotsTab({ election, hotspots }: { election: string; hotspots: any[] }) {
+  const [geoPoints, setGeoPoints] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/elections/hotspots-geo?country=NG&election=${encodeURIComponent(election)}`)
+      .then(r => r.json()).then(d => setGeoPoints(Array.isArray(d) ? d : [])).catch(() => {});
+  }, [election]);
+
+  return (
+    <div>
+      {geoPoints.length > 0 ? (
+        <ElectionHeatMap points={geoPoints} />
+      ) : hotspots.length === 0 ? (
+        <EmptyState icon="\ud83d\uddfa\ufe0f" title="No hotspots detected" desc="Hotspots appear when multiple incidents are reported in the same area" />
+      ) : (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+          <p className="text-sm text-amber-700">\ud83d\uddfa\ufe0f Heat map will appear once reports include GPS coordinates. Showing state-level summary below.</p>
+        </div>
+      )}
+
+      {hotspots.length > 0 && (
+        <div className="grid gap-3 sm:grid-cols-2 mt-4">
+          {hotspots.map((h: any, i: number) => (
+            <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-gray-900">{h.state || 'Unknown'}</h3>
+                <span className="px-2 py-0.5 text-xs font-bold rounded text-white" style={{ backgroundColor: INCIDENT_COLORS[h.type] || '#6B7280' }}>
+                  {h.type?.replace('_', ' ')}
+                </span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900 mt-2">{h.count}</p>
+              <p className="text-xs text-gray-500">reports</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

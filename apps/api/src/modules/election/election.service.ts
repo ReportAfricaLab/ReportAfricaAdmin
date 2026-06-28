@@ -62,7 +62,7 @@ export class ElectionService {
       prevHash,
     } as any);
 
-    const saved = await this.electionRepo.save(report) as ElectionReportEntity;
+    const saved = await this.electionRepo.save(report) as unknown as ElectionReportEntity;
 
     // Multi-source verification - check if other results exist for same PU
     if (dto.type === 'result_upload' && dto.pollingUnit) {
@@ -172,5 +172,18 @@ export class ElectionService {
       .addGroupBy('e.type')
       .orderBy('count', 'DESC')
       .getRawMany();
+  }
+
+  async getHotspotsGeo(country: string, electionName: string) {
+    return this.electionRepo
+      .createQueryBuilder('e')
+      .select(['e.id', 'e.latitude', 'e.longitude', 'e.type', 'e.state', 'e.createdAt'])
+      .where('e.country = :country', { country })
+      .andWhere('e.electionName = :electionName', { electionName })
+      .andWhere('e.latitude IS NOT NULL')
+      .andWhere('e.longitude IS NOT NULL')
+      .orderBy('e.createdAt', 'DESC')
+      .limit(500)
+      .getMany();
   }
 }
