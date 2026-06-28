@@ -129,6 +129,7 @@ export const electionsAPI = {
   getResults: (country: string, election?: string) => api.get(`/elections/results?country=${country}${election ? `&election=${encodeURIComponent(election)}` : ''}`),
   getHotspots: (country: string, election?: string) => api.get(`/elections/hotspots?country=${country}${election ? `&election=${encodeURIComponent(election)}` : ''}`),
   getLive: (country: string, election?: string) => api.get(`/elections/live?country=${country}${election ? `&election=${encodeURIComponent(election)}` : ''}`),
+  getParallelCount: (country: string, election: string) => api.get(`/elections/parallel-count?country=${country}&election=${encodeURIComponent(election)}`),
 };
 
 export const commentsAPI = {
