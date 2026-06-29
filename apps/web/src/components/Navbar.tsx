@@ -62,11 +62,6 @@ export default function Navbar() {
     { href: '/media-licensing', label: t('nav.media', 'Media') },
     { href: '/map', label: t('nav.map', 'Map') },
     { href: '/live', label: '🔴 ' + t('nav.live', 'Live') },
-    { href: '/challenges', label: '💰 Promo Gigs' },
-    { href: '/business', label: '🏪 Business' },
-    { href: '/safe-trip', label: '🛡️ Safe Trip' },
-    { href: '/government', label: '🏛️ For Government' },
-    { href: 'https://observers.reportafrica.africa', label: '🗳️ Election Observers' },
   ];
 
   const navLinks = isAuthenticated ? authNavLinks : guestNavLinks;
@@ -217,6 +212,11 @@ export default function Navbar() {
                   { href: '/referral', icon: '🎁', label: 'Referral' },
                   { href: 'https://academy.reportafrica.africa', icon: '🎓', label: 'Academy' },
                   { href: '/profile/licenses', icon: '📄', label: 'Licenses' },
+                  { href: '/challenges', icon: '💰', label: 'Promo Gigs' },
+                  { href: '/business', icon: '🏪', label: 'Business' },
+                  { href: '/safe-trip', icon: '🛡️', label: 'Safe Trip' },
+                  { href: '/government', icon: '🏛️', label: 'For Government' },
+                  { href: 'https://observers.reportafrica.africa', icon: '🗳️', label: 'Election Observers' },
                   ...(userProfile.role === 'admin' ? [{ href: 'https://admin.reportafrica.africa', icon: '⚙️', label: 'Admin Panel' }] : []),
                 ].map((item) => (
                   <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)}
