@@ -82,6 +82,12 @@ export class GovController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Patch('agencies/:id/grant-access')
+  grantAccess(@Param('id') id: string, @Body() body: { tier: string; days: number }) {
+    return this.service.grantAccess(id, body.tier, body.days);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Post('subscribe')
   subscribe(@Request() req: any, @Body() dto: { tier: string; email: string }) {
     return this.service.subscribe(req.user.id, dto.tier, dto.email);

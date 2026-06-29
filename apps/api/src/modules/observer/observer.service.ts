@@ -170,12 +170,14 @@ export class ObserverService {
     return this.observerRepo.save(observer);
   }
 
-  async activate(observerId: string) {
+  async activate(observerId: string, tier?: string, days?: number) {
     const observer = await this.observerRepo.findOne({ where: { id: observerId } });
     if (!observer) throw new BadRequestException('Not found');
+    if (tier) observer.tier = tier;
     observer.status = 'observer_active';
     observer.paidAt = new Date();
-    observer.expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+    observer.expiresAt = new Date(Date.now() + (days || 90) * 24 * 60 * 60 * 1000);
+    if (tier && TIER_CONFIG[tier]) observer.seats = TIER_CONFIG[tier].seats;
     return this.observerRepo.save(observer);
   }
 

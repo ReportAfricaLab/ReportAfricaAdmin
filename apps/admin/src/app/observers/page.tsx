@@ -85,6 +85,52 @@ export default function ObserversAdminPage() {
           ))}
         </div>
       )}
+
+      {/* Grant Access Form */}
+      <GrantAccessForm observers={[...pending, ...active]} onGranted={loadData} />
+    </div>
+  );
+}
+
+function GrantAccessForm({ observers, onGranted }: { observers: any[]; onGranted: () => void }) {
+  const [selectedId, setSelectedId] = useState('');
+  const [tier, setTier] = useState('individual');
+  const [days, setDays] = useState('90');
+  const [loading, setLoading] = useState(false);
+
+  const handleGrant = async () => {
+    if (!selectedId) { alert('Select an observer'); return; }
+    setLoading(true);
+    const token = localStorage.getItem('admin_token');
+    const res = await fetch(`${API_URL}/observers/admin/${selectedId}/activate`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tier, days: Number(days) }),
+    });
+    const data = await res.json();
+    if (data.id) { alert(`Access granted: ${tier} for ${days} days`); onGranted(); }
+    else alert(data.message || 'Failed');
+    setLoading(false);
+  };
+
+  return (
+    <div className="mt-8 bg-[#1E293B] rounded-xl border border-gray-700 p-6">
+      <h3 className="text-sm font-semibold text-white mb-4">🎟️ Grant Observer Access (No Payment)</h3>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <select value={selectedId} onChange={e => setSelectedId(e.target.value)} className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none">
+          <option value="">Select observer...</option>
+          {observers.map((o: any) => <option key={o.id} value={o.id}>{o.user?.displayName || o.userId} ({o.country})</option>)}
+        </select>
+        <select value={tier} onChange={e => setTier(e.target.value)} className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none">
+          <option value="individual">Individual (1 seat)</option>
+          <option value="organization">Organization (5 seats)</option>
+          <option value="enterprise">Enterprise (20 seats)</option>
+        </select>
+        <input value={days} onChange={e => setDays(e.target.value)} type="number" placeholder="Days" className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none" />
+        <button onClick={handleGrant} disabled={loading} className="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-500 disabled:opacity-50">
+          {loading ? '...' : 'Grant Access'}
+        </button>
+      </div>
     </div>
   );
 }

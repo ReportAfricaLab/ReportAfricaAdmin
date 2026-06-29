@@ -69,8 +69,8 @@ export class ObserverController {
 
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Patch('admin/:id/activate')
-  activate(@Param('id') id: string) {
-    return this.service.activate(id);
+  activate(@Param('id') id: string, @Body() body: { tier?: string; days?: number }) {
+    return this.service.activate(id, body?.tier, body?.days);
   }
 
   @UseGuards(AuthGuard('jwt'), AdminGuard)

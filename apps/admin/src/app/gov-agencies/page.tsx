@@ -82,6 +82,46 @@ export default function GovAgenciesPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Grant Access Form */}
+      <GovGrantAccessForm agencies={approved} onGranted={load} />
+    </div>
+  );
+}
+
+function GovGrantAccessForm({ agencies, onGranted }: { agencies: any[]; onGranted: () => void }) {
+  const [selectedId, setSelectedId] = useState('');
+  const [tier, setTier] = useState('basic');
+  const [days, setDays] = useState('30');
+  const [loading, setLoading] = useState(false);
+
+  const handleGrant = async () => {
+    if (!selectedId) { alert('Select an agency'); return; }
+    setLoading(true);
+    const res = await adminAPI.govGrantAccess(selectedId, tier, Number(days));
+    if (res.granted) { alert(`Access granted: ${tier} for ${days} days`); onGranted(); }
+    else alert(res.message || 'Failed');
+    setLoading(false);
+  };
+
+  return (
+    <div className="mt-8 bg-[#1E293B] rounded-xl border border-gray-700 p-6">
+      <h3 className="text-sm font-semibold text-white mb-4">🎟️ Grant Gov Access (No Payment)</h3>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <select value={selectedId} onChange={e => setSelectedId(e.target.value)} className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none">
+          <option value="">Select agency...</option>
+          {agencies.map((u: any) => <option key={u.id} value={u.id}>{u.displayName || u.username} ({u.email})</option>)}
+        </select>
+        <select value={tier} onChange={e => setTier(e.target.value)} className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none">
+          <option value="basic">Basic ($500/mo)</option>
+          <option value="pro">Pro ($2,000/mo)</option>
+          <option value="enterprise">Enterprise ($5,000/mo)</option>
+        </select>
+        <input value={days} onChange={e => setDays(e.target.value)} type="number" placeholder="Days" className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none" />
+        <button onClick={handleGrant} disabled={loading} className="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-500 disabled:opacity-50">
+          {loading ? '...' : 'Grant Access'}
+        </button>
+      </div>
     </div>
   );
 }

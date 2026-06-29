@@ -156,6 +156,19 @@ export class GovService {
     return { rejected: true };
   }
 
+  async grantAccess(userId: string, tier: string, days: number) {
+    if (!GOV_TIERS[tier] || tier === 'free') throw new BadRequestException('Invalid tier');
+    const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    await this.userRepo.update(userId, {
+      role: 'gov_agency',
+      subscriptionTier: tier,
+      subscriptionExpires: expires,
+      govTrialStart: new Date(),
+      govTrialEnd: expires,
+    } as any);
+    return { granted: true, tier, days, expires };
+  }
+
   async getAllAgencies() {
     return this.userRepo.find({ where: { role: 'gov_agency' as any }, select: ['id', 'email', 'username', 'displayName', 'createdAt'] });
   }
