@@ -2,12 +2,14 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual } from 'typeorm';
 import { UserEntity, ReportEntity, ElectionReportEntity, CampaignEntity } from '../../database/entities';
+import { PaystackService } from '../donations/paystack.service';
+import { KoraPayService } from '../payments/korapay.service';
 
-const GOV_TIERS: Record<string, { historyDays: number; canExport: boolean; label: string }> = {
-  free: { historyDays: 7, canExport: false, label: 'Free' },
-  basic: { historyDays: 90, canExport: true, label: 'Agency Basic' },
-  pro: { historyDays: 365, canExport: true, label: 'Agency Pro' },
-  enterprise: { historyDays: 9999, canExport: true, label: 'Enterprise' },
+const GOV_TIERS: Record<string, { historyDays: number; canExport: boolean; label: string; usdPrice: number }> = {
+  free: { historyDays: 7, canExport: false, label: 'Free', usdPrice: 0 },
+  basic: { historyDays: 90, canExport: true, label: 'Agency Basic', usdPrice: 500 },
+  pro: { historyDays: 365, canExport: true, label: 'Agency Pro', usdPrice: 2000 },
+  enterprise: { historyDays: 9999, canExport: true, label: 'Enterprise', usdPrice: 5000 },
 };
 
 @Injectable()
@@ -17,6 +19,8 @@ export class GovService {
     @InjectRepository(ReportEntity) private readonly reportRepo: Repository<ReportEntity>,
     @InjectRepository(ElectionReportEntity) private readonly electionRepo: Repository<ElectionReportEntity>,
     @InjectRepository(CampaignEntity) private readonly campaignRepo: Repository<CampaignEntity>,
+    private readonly paystackService: PaystackService,
+    private readonly koraPayService: KoraPayService,
   ) {}
 
   getTierForUser(user: any): { historyDays: number; canExport: boolean; label: string } {
@@ -154,5 +158,58 @@ export class GovService {
 
   async getAllAgencies() {
     return this.userRepo.find({ where: { role: 'gov_agency' as any }, select: ['id', 'email', 'username', 'displayName', 'createdAt'] });
+  }
+
+  // === GOV SUBSCRIPTION PAYMENT ===
+
+  async subscribe(userId: string, tier: string, email: string) {
+    if (!GOV_TIERS[tier] || tier === 'free') throw new BadRequestException('Invalid tier');
+    const amount = GOV_TIERS[tier].usdPrice;
+    const reference = `gov_${userId}_${tier}_${Date.now()}`;
+
+    // Try Paystack first
+    const paystackRes = await this.paystackService.initializePayment({
+      email,
+      amount: amount * 100,
+      currency: 'USD',
+      reference,
+      metadata: { type: 'gov_subscription', userId, tier },
+    });
+
+    if (paystackRes.status && paystackRes.data?.authorization_url) {
+      return { paymentUrl: paystackRes.data.authorization_url, reference, provider: 'paystack' };
+    }
+
+    // Fallback to KoraPay
+    const koraRes = await this.koraPayService.initializePayment({
+      amount,
+      currency: 'USD',
+      email,
+      reference,
+      metadata: { type: 'gov_subscription', userId, tier },
+    });
+
+    if (koraRes.status && koraRes.data?.checkout_url) {
+      return { paymentUrl: koraRes.data.checkout_url, reference, provider: 'korapay' };
+    }
+
+    throw new BadRequestException('Payment initialization failed. Please try again.');
+  }
+
+  async activateSubscription(userId: string, tier: string) {
+    const expires = new Date();
+    expires.setMonth(expires.getMonth() + 1);
+    await this.userRepo.update(userId, { subscriptionTier: tier, subscriptionExpires: expires } as any);
+  }
+
+  async handlePaymentWebhook(metadata: any) {
+    if (metadata?.type !== 'gov_subscription') return;
+    await this.activateSubscription(metadata.userId, metadata.tier);
+  }
+
+  getPlans() {
+    return Object.entries(GOV_TIERS).filter(([k]) => k !== 'free').map(([key, tier]) => ({
+      tier: key, label: tier.label, price: tier.usdPrice, currency: 'USD', historyDays: tier.historyDays, canExport: tier.canExport,
+    }));
   }
 }

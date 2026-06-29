@@ -2,6 +2,8 @@ import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/com
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ObserverEntity } from '../../database/entities/observer.entity';
+import { PaystackService } from '../donations/paystack.service';
+import { KoraPayService } from '../payments/korapay.service';
 
 const TIER_CONFIG: Record<string, { price: number; seats: number }> = {
   individual: { price: 500, seats: 1 },
@@ -14,6 +16,8 @@ export class ObserverService {
   constructor(
     @InjectRepository(ObserverEntity)
     private readonly observerRepo: Repository<ObserverEntity>,
+    private readonly paystackService: PaystackService,
+    private readonly koraPayService: KoraPayService,
   ) {}
 
   async register(userId: string, dto: { orgName?: string; country: string; tier: string; accreditationUrl: string }) {
@@ -58,45 +62,64 @@ export class ObserverService {
     if (observer.status !== 'observer_approved') throw new ForbiddenException('Not yet approved');
 
     const amount = TIER_CONFIG[observer.tier]?.price || 500;
-    const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
     const reference = `obs_${observer.id}_${Date.now()}`;
 
-    const res = await fetch('https://api.paystack.co/transaction/initialize', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${paystackSecretKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        amount: amount * 100, // kobo/cents
-        currency: 'USD',
-        reference,
-        metadata: { observerId: observer.id, tier: observer.tier, country },
-      }),
+    // Try Paystack first
+    const paystackRes = await this.paystackService.initializePayment({
+      email,
+      amount: amount * 100,
+      currency: 'USD',
+      reference,
+      metadata: { type: 'observer_subscription', observerId: observer.id, tier: observer.tier, country },
     });
 
-    const data = await res.json();
-    if (!data.status) throw new BadRequestException('Payment initialization failed');
+    if (paystackRes.status && paystackRes.data?.authorization_url) {
+      observer.paystackReference = reference;
+      await this.observerRepo.save(observer);
+      return { authorizationUrl: paystackRes.data.authorization_url, reference, provider: 'paystack' };
+    }
 
-    observer.paystackReference = reference;
-    await this.observerRepo.save(observer);
+    // Fallback to KoraPay
+    const koraRes = await this.koraPayService.initializePayment({
+      amount,
+      currency: 'USD',
+      email,
+      reference,
+      metadata: { type: 'observer_subscription', observerId: observer.id, tier: observer.tier, country },
+    });
 
-    return { authorizationUrl: data.data.authorization_url, reference };
+    if (koraRes.status && koraRes.data?.checkout_url) {
+      observer.paystackReference = reference;
+      await this.observerRepo.save(observer);
+      return { authorizationUrl: koraRes.data.checkout_url, reference, provider: 'korapay' };
+    }
+
+    throw new BadRequestException('Payment initialization failed. Please try again later.');
   }
 
   async verifyPayment(reference: string) {
-    const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
-    const res = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
-      headers: { Authorization: `Bearer ${paystackSecretKey}` },
-    });
-    const data = await res.json();
+    // Try Paystack first
+    const paystackRes = await this.paystackService.verifyPayment(reference);
+    if (paystackRes.data?.status === 'success') {
+      return this.activateAfterPayment(reference);
+    }
 
-    if (data.data?.status !== 'success') throw new BadRequestException('Payment not confirmed');
+    // Try KoraPay
+    const koraRes = await this.koraPayService.verifyTransaction(reference);
+    if (koraRes.status && koraRes.data?.status === 'success') {
+      return this.activateAfterPayment(reference);
+    }
 
+    throw new BadRequestException('Payment not confirmed');
+  }
+
+  private async activateAfterPayment(reference: string) {
     const observer = await this.observerRepo.findOne({ where: { paystackReference: reference } });
     if (!observer) throw new BadRequestException('Observer not found');
 
     observer.status = 'observer_active';
     observer.paidAt = new Date();
-    observer.expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days
+    observer.expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
     await this.observerRepo.save(observer);
 
     return observer;

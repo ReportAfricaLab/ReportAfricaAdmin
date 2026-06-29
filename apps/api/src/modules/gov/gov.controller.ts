@@ -80,4 +80,15 @@ export class GovController {
   rejectAgency(@Param('id') id: string) {
     return this.service.rejectAgency(id);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('subscribe')
+  subscribe(@Request() req: any, @Body() dto: { tier: string; email: string }) {
+    return this.service.subscribe(req.user.id, dto.tier, dto.email);
+  }
+
+  @Get('plans')
+  getPlans() {
+    return this.service.getPlans();
+  }
 }

@@ -101,4 +101,31 @@ export class KoraPayService {
   generateReference(): string {
     return `RA_LIC_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
   }
+
+  // Simple collection (no split) — used as fallback when Paystack fails
+  async initializePayment(params: { amount: number; currency: string; email: string; reference: string; metadata?: Record<string, any>; redirectUrl?: string }): Promise<KoraResponse> {
+    const payload = {
+      amount: params.amount,
+      currency: params.currency,
+      reference: params.reference,
+      customer: { email: params.email },
+      notification_url: this.config.get('KORAPAY_WEBHOOK_URL', ''),
+      redirect_url: params.redirectUrl || this.config.get('KORAPAY_REDIRECT_URL', ''),
+      metadata: params.metadata,
+    };
+
+    try {
+      const response = await fetch(`${this.baseUrl}/charges/initialize`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${this.secretKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      this.logger.log(`Kora Pay collection initialized: ${params.reference} - ${data.status}`);
+      return data;
+    } catch (error) {
+      this.logger.error('Kora Pay collection failed', error);
+      return { status: false, message: 'Payment initialization failed', data: null };
+    }
+  }
 }

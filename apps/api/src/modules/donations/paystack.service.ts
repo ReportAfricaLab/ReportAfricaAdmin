@@ -28,25 +28,35 @@ export class PaystackService {
   }
 
   async initializePayment(params: InitializePaymentParams): Promise<PaystackResponse> {
-    const response = await fetch(`${this.baseUrl}/transaction/initialize`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.secretKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: params.email,
-        amount: params.amount,
-        currency: params.currency,
-        reference: params.reference,
-        callback_url: params.callbackUrl || this.config.get('PAYSTACK_CALLBACK_URL', ''),
-        metadata: params.metadata,
-      }),
-    });
+    try {
+      const response = await fetch(`${this.baseUrl}/transaction/initialize`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.secretKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: params.email,
+          amount: params.amount,
+          currency: params.currency,
+          reference: params.reference,
+          callback_url: params.callbackUrl || this.config.get('PAYSTACK_CALLBACK_URL', ''),
+          metadata: params.metadata,
+        }),
+      });
 
-    const data = await response.json();
-    this.logger.log(`Payment initialized: ${params.reference} - ${data.status}`);
-    return data;
+      const data = await response.json();
+      this.logger.log(`Payment initialized: ${params.reference} - ${data.status}`);
+
+      // If Paystack fails, return failed status (caller handles fallback)
+      if (!data.status) {
+        this.logger.warn(`Paystack failed for ${params.reference}: ${data.message}`);
+      }
+      return data;
+    } catch (error) {
+      this.logger.error(`Paystack request failed for ${params.reference}`, error);
+      return { status: false, message: 'Paystack unavailable', data: null };
+    }
   }
 
   async verifyPayment(reference: string): Promise<PaystackResponse> {
