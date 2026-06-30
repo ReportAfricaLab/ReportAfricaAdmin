@@ -5,6 +5,7 @@ import RootNavigator from './src/navigation/RootNavigator';
 import { useI18n } from './src/store/useI18n';
 import { useAppStore } from './src/store/useAppStore';
 import { offlineQueue } from './src/services/offline-queue';
+import { pushService } from './src/services/pushNotifications';
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN || '',
@@ -16,7 +17,7 @@ Sentry.init({
 
 function App() {
   const { isRTL } = useI18n();
-  const { userCountry, initDarkMode } = useAppStore();
+  const { userCountry, initDarkMode, isAuthenticated } = useAppStore();
   const { initFromCountry } = useI18n();
 
   useEffect(() => {
@@ -25,6 +26,18 @@ function App() {
     offlineQueue.init();
     return () => offlineQueue.destroy();
   }, []);
+
+  // Register push notifications when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const { token: authToken } = useAppStore.getState();
+      if (authToken) {
+        pushService.register(authToken).catch(() => {});
+        const cleanup = pushService.addListeners();
+        return cleanup;
+      }
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (I18nManager.isRTL !== isRTL) {

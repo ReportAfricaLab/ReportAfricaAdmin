@@ -1,7 +1,8 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
-import { API_URL } from '../constants';
+
+const API_URL = 'https://api.reportafrica.africa/api/v1';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
