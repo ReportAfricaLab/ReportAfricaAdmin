@@ -10,9 +10,9 @@ export default function AcademyHome() {
   const [courses, setCourses] = useState<any[]>([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem('academy_user');
+    // Check academy_user first, then fall back to main app ra_user
+    const stored = localStorage.getItem('academy_user') || localStorage.getItem('ra_user');
     if (stored) { const u = JSON.parse(stored); setUser(u); setCountry(u.country || 'NG'); }
-    // Fetch published courses from API
     fetch(`${API_URL}/courses`).then(r => r.json()).then(data => {
       if (Array.isArray(data)) setCourses(data);
     }).catch(() => {});

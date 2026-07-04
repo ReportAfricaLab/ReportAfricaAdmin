@@ -14,11 +14,10 @@ export default function CourseDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem('academy_user');
+    const stored = localStorage.getItem('academy_user') || localStorage.getItem('ra_user');
     if (stored) setUser(JSON.parse(stored));
     const enrollments = JSON.parse(localStorage.getItem('academy_enrollments') || '[]');
     if (enrollments.includes(id) || enrollments.includes('bundle')) setEnrolled(true);
-    // Fetch course from API
     fetch(`${API_URL}/courses/${id}`).then(r => r.json()).then(data => { setCourse(data); setLoading(false); }).catch(() => setLoading(false));
   }, [id]);
 
@@ -31,7 +30,7 @@ export default function CourseDetailPage() {
 
   const handlePurchase = async () => {
     if (!user) { window.location.href = 'https://reportafrica.africa/login'; return; }
-    const token = localStorage.getItem('academy_token');
+    const token = localStorage.getItem('academy_token') || localStorage.getItem('ra_token');
     try {
       const res = await fetch(`${API_URL}/courses/${id}/enroll`, {
         method: 'POST',
