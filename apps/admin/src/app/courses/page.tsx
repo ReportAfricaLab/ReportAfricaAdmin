@@ -38,7 +38,8 @@ export default function CoursesPage() {
 
   const handleAddLesson = async (courseId: string) => {
     if (!lessonForm?.title) return;
-    await adminAPI.addLesson(courseId, lessonForm);
+    const { courseId: _, ...lessonData } = lessonForm;
+    await adminAPI.addLesson(courseId, lessonData);
     setLessonForm(null); load();
   };
 
