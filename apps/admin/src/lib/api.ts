@@ -121,4 +121,6 @@ export const adminAPI = {
   getQuizResults: (id: string) => adminFetch(`/admin/quizzes/${id}/results`),
   getAcademyAnalytics: () => adminFetch('/admin/courses/analytics'),
   getCourseAnalytics: (id: string) => adminFetch(`/admin/courses/analytics/course/${id}`),
+  grantFreeAccess: (userId: string, courseId: string) => adminFetch('/admin/courses/grant-access', { method: 'POST', body: JSON.stringify({ userId, courseId }) }),
+  searchUsers: (search: string) => adminFetch(`/admin/users?search=${encodeURIComponent(search)}&page=1`),
 };

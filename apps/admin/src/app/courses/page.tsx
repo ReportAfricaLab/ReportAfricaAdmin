@@ -13,7 +13,12 @@ export default function CoursesPage() {
   const [showEnrollments, setShowEnrollments] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
-  const [tab, setTab] = useState<'courses' | 'analytics'>('courses');
+  const [tab, setTab] = useState<'courses' | 'analytics' | 'grant'>('courses');
+  const [grantSearch, setGrantSearch] = useState('');
+  const [grantUsers, setGrantUsers] = useState<any[]>([]);
+  const [grantUserId, setGrantUserId] = useState('');
+  const [grantCourseId, setGrantCourseId] = useState('');
+  const [grantLoading, setGrantLoading] = useState(false);
 
   const load = async () => {
     try { const data = await adminAPI.getCourses(); setCourses(data); } catch {}
@@ -73,10 +78,49 @@ export default function CoursesPage() {
         <div className="flex gap-2">
           <button onClick={() => setTab('courses')} className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'courses' ? 'bg-[#0F7B6C] text-white' : 'bg-gray-100 text-gray-600'}`}>Courses</button>
           <button onClick={() => { setTab('analytics'); loadAnalytics(); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'analytics' ? 'bg-[#0F7B6C] text-white' : 'bg-gray-100 text-gray-600'}`}>Analytics</button>
+          <button onClick={() => setTab('grant')} className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'grant' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'}`}>🎁 Grant Access</button>
           <button onClick={() => { setEditing({}); setForm({ title: '', description: '', icon: '📚', usdPrice: 13, thumbnailUrl: '', isPublished: false, sortOrder: 0 }); }}
             className="px-4 py-2 bg-[#0F7B6C] text-white rounded-lg text-sm font-medium">+ Add Course</button>
         </div>
       </div>
+
+      {/* Grant Free Access Tab */}
+      {tab === 'grant' && (
+        <div className="bg-white border border-amber-200 rounded-xl p-6 max-w-lg">
+          <h2 className="font-bold text-gray-900 mb-1">🎁 Grant Free Course Access</h2>
+          <p className="text-xs text-gray-500 mb-4">Enroll any user into any course for free — for testing or gifting.</p>
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <input value={grantSearch} onChange={e => setGrantSearch(e.target.value)} placeholder="Search user by name or email" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <button onClick={async () => { try { const res = await adminAPI.searchUsers(grantSearch); setGrantUsers(res.users || res); } catch (e: any) { alert(e.message); } }} className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">Search</button>
+            </div>
+            {grantUsers.length > 0 && (
+              <select value={grantUserId} onChange={e => setGrantUserId(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                <option value="">— Select user —</option>
+                {grantUsers.map((u: any) => <option key={u.id} value={u.id}>{u.displayName || u.username} ({u.email})</option>)}
+              </select>
+            )}
+            <select value={grantCourseId} onChange={e => setGrantCourseId(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+              <option value="">— Select course —</option>
+              {courses.map((c: any) => <option key={c.id} value={c.id}>{c.icon} {c.title}</option>)}
+            </select>
+            <button
+              disabled={!grantUserId || !grantCourseId || grantLoading}
+              onClick={async () => {
+                setGrantLoading(true);
+                try {
+                  const res = await adminAPI.grantFreeAccess(grantUserId, grantCourseId);
+                  alert(res.alreadyEnrolled ? 'User was already enrolled in this course.' : '✅ Access granted! User is now enrolled.');
+                  setGrantUserId(''); setGrantCourseId(''); setGrantUsers([]); setGrantSearch('');
+                } catch (e: any) { alert(e.message); }
+                setGrantLoading(false);
+              }}
+              className="w-full py-2 bg-amber-500 text-white rounded-lg text-sm font-medium disabled:opacity-50">
+              {grantLoading ? 'Granting...' : 'Grant Free Access'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Analytics Tab */}
       {tab === 'analytics' && (
