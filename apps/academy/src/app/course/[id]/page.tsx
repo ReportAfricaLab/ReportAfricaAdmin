@@ -15,9 +15,14 @@ export default function CourseDetailPage() {
 
   useEffect(() => {
     const stored = localStorage.getItem('academy_user') || localStorage.getItem('ra_user');
+    const token = localStorage.getItem('academy_token') || localStorage.getItem('ra_token');
     if (stored) setUser(JSON.parse(stored));
-    const enrollments = JSON.parse(localStorage.getItem('academy_enrollments') || '[]');
-    if (enrollments.includes(id) || enrollments.includes('bundle')) setEnrolled(true);
+    if (token) {
+      fetch(`${API_URL}/courses/my-enrollments`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.json()).then(data => {
+          if (Array.isArray(data) && data.find((e: any) => e.courseId === id)) setEnrolled(true);
+        }).catch(() => {});
+    }
     fetch(`${API_URL}/courses/${id}`).then(r => r.json()).then(data => { setCourse(data); setLoading(false); }).catch(() => setLoading(false));
   }, [id]);
 

@@ -15,7 +15,7 @@ function LearnContent() {
   const [completing, setCompleting] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('academy_token');
+    const token = localStorage.getItem('academy_token') || localStorage.getItem('ra_token');
     if (!token) { router.push(`/course/${id}`); return; }
     fetch(`${API_URL}/courses/${id}`).then(r => r.json()).then(setCourse).catch(() => {});
     fetch(`${API_URL}/courses/my-enrollments`, { headers: { Authorization: `Bearer ${token}` } })
@@ -39,7 +39,7 @@ function LearnContent() {
 
   const markComplete = async () => {
     setCompleting(true);
-    const token = localStorage.getItem('academy_token');
+    const token = localStorage.getItem('academy_token') || localStorage.getItem('ra_token');
     try {
       const res = await fetch(`${API_URL}/courses/${id}/lessons/${currentLesson.id}/complete`, {
         method: 'PATCH', headers: { Authorization: `Bearer ${token}` },
