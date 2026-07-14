@@ -29,6 +29,8 @@ export default function ReportsPage() {
     setTimeout(() => setMessage(''), 3000);
   };
 
+  const PINATA_GATEWAY = 'https://gateway.pinata.cloud/ipfs';
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -47,7 +49,7 @@ export default function ReportsPage() {
           <div key={r.id} className="bg-gray-800 rounded-xl border border-gray-700 p-5">
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${r.severity === 'critical' ? 'bg-red-600' : r.severity === 'high' ? 'bg-orange-600' : 'bg-blue-600'} text-white`}>
                     {r.severity?.toUpperCase()}
                   </span>
@@ -56,6 +58,12 @@ export default function ReportsPage() {
                   <span className={`text-[10px] px-2 py-0.5 rounded ${r.verificationLevel === 'community_verified' ? 'bg-emerald-600/20 text-emerald-400' : 'bg-gray-700 text-gray-400'}`}>
                     {r.verificationLevel}
                   </span>
+                  {r.ipfsCid && (
+                    <a href={`${PINATA_GATEWAY}/${r.ipfsCid}`} target="_blank" rel="noreferrer"
+                      className="px-2 py-0.5 text-[10px] bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 rounded hover:bg-emerald-600/30 transition">
+                      📌 IPFS
+                    </a>
+                  )}
                 </div>
                 <h3 className="font-medium text-gray-100">{r.title}</h3>
                 <p className="text-sm text-gray-400 mt-1 line-clamp-2">{r.description}</p>
