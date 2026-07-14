@@ -122,6 +122,7 @@ export const adminAPI = {
   getQuizResults: (id: string) => adminFetch(`/admin/quizzes/${id}/results`),
   getAcademyAnalytics: () => adminFetch('/admin/courses/analytics'),
   getCourseAnalytics: (id: string) => adminFetch(`/admin/courses/analytics/course/${id}`),
+  grantFreeAccess: (userId: string, courseId: string) => adminFetch(`/admin/courses/${courseId}/grant-access`, { method: 'POST', body: JSON.stringify({ userId }) }),
 
   // AMARA Support
   support: {
@@ -131,6 +132,7 @@ export const adminAPI = {
     reject: (id: string, reason: string) => adminFetch(`/support/incidents/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
     resolve: (id: string) => adminFetch(`/support/incidents/${id}/resolve`, { method: 'PATCH' }),
     stats: () => adminFetch('/support/stats'),
+    weeklyStats: () => adminFetch('/support/stats/weekly'),
     playbooks: () => adminFetch('/support/playbooks'),
     createPlaybook: (data: any) => adminFetch('/support/playbooks', { method: 'POST', body: JSON.stringify(data) }),
     updatePlaybook: (id: string, data: any) => adminFetch(`/support/playbooks/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
