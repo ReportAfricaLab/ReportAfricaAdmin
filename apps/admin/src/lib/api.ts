@@ -28,6 +28,7 @@ export const adminAPI = {
     if (country) params.set('country', country);
     return adminFetch(`/admin/users?${params}`);
   },
+  searchUsers: (q: string) => adminFetch(`/admin/users?search=${encodeURIComponent(q)}&page=1`),
   updateUser: (id: string, data: any) => adminFetch(`/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   banUser: (id: string) => adminFetch(`/admin/users/${id}/ban`, { method: 'PATCH' }),
   suspendUser: (id: string) => adminFetch(`/admin/users/${id}/suspend`, { method: 'PATCH' }),
