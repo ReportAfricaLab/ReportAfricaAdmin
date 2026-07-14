@@ -104,7 +104,7 @@ export const adminAPI = {
   govReject: (id: string) => adminFetch(`/gov/agencies/${id}/reject`, { method: 'PATCH' }),
   govGrantAccess: (id: string, tier: string, days: number) => adminFetch(`/gov/agencies/${id}/grant-access`, { method: 'PATCH', body: JSON.stringify({ tier, days }) }),
 
-  // Courses (existing)
+  // Courses
   getCourses: () => adminFetch('/admin/courses'),
   createCourse: (data: any) => adminFetch('/admin/courses', { method: 'POST', body: JSON.stringify(data) }),
   updateCourse: (id: string, data: any) => adminFetch(`/admin/courses/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
@@ -134,6 +134,7 @@ export const adminAPI = {
     stats: () => adminFetch('/support/stats'),
     weeklyStats: () => adminFetch('/support/stats/weekly'),
     playbooks: () => adminFetch('/support/playbooks'),
+    recentPlaybooks: () => adminFetch('/support/playbooks/recent'),
     createPlaybook: (data: any) => adminFetch('/support/playbooks', { method: 'POST', body: JSON.stringify(data) }),
     updatePlaybook: (id: string, data: any) => adminFetch(`/support/playbooks/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     promotePlaybook: (id: string) => adminFetch(`/support/playbooks/${id}/promote`, { method: 'PATCH' }),
