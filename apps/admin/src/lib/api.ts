@@ -121,6 +121,23 @@ export const adminAPI = {
   getQuizResults: (id: string) => adminFetch(`/admin/quizzes/${id}/results`),
   getAcademyAnalytics: () => adminFetch('/admin/courses/analytics'),
   getCourseAnalytics: (id: string) => adminFetch(`/admin/courses/analytics/course/${id}`),
-  grantFreeAccess: (userId: string, courseId: string) => adminFetch('/admin/courses/grant-access', { method: 'POST', body: JSON.stringify({ userId, courseId }) }),
-  searchUsers: (search: string) => adminFetch(`/admin/users?search=${encodeURIComponent(search)}&page=1`),
+
+  // AMARA Support
+  support: {
+    incidents: (page = 1, status?: string) => adminFetch(`/support/incidents?page=${page}${status ? `&status=${status}` : ''}`),
+    incident: (id: string) => adminFetch(`/support/incidents/${id}`),
+    approve: (id: string) => adminFetch(`/support/incidents/${id}/approve`, { method: 'PATCH' }),
+    reject: (id: string, reason: string) => adminFetch(`/support/incidents/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
+    resolve: (id: string) => adminFetch(`/support/incidents/${id}/resolve`, { method: 'PATCH' }),
+    stats: () => adminFetch('/support/stats'),
+    playbooks: () => adminFetch('/support/playbooks'),
+    createPlaybook: (data: any) => adminFetch('/support/playbooks', { method: 'POST', body: JSON.stringify(data) }),
+    updatePlaybook: (id: string, data: any) => adminFetch(`/support/playbooks/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    promotePlaybook: (id: string) => adminFetch(`/support/playbooks/${id}/promote`, { method: 'PATCH' }),
+  },
+
+  // Milestone
+  submitMilestoneProof: (campaignId: string, mediaUrl: string) => adminFetch(`/donations/campaigns/${campaignId}/milestone-proof`, { method: 'POST', body: JSON.stringify({ mediaUrl }) }),
+  verifyMilestone: (campaignId: string) => adminFetch(`/donations/campaigns/${campaignId}/milestone-verify`, { method: 'PATCH' }),
+  milestoneStatus: (campaignId: string) => adminFetch(`/donations/campaigns/${campaignId}/milestone-status`),
 };
