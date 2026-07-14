@@ -18,18 +18,21 @@ const STATUS_STYLE: Record<string, string> = {
 
 export default function AMARADashboard() {
   const [stats, setStats] = useState<any>(null);
+  const [weekly, setWeekly] = useState<any>(null);
   const [incidents, setIncidents] = useState<any[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
-      const [s, i] = await Promise.all([
+      const [s, i, w] = await Promise.all([
         adminAPI.support.stats(),
         adminAPI.support.incidents(1),
+        adminAPI.support.weeklyStats(),
       ]);
       setStats(s);
       setIncidents(i.data || []);
+      setWeekly(w);
     } catch { }
     setLoading(false);
   }, []);
@@ -69,6 +72,43 @@ export default function AMARADashboard() {
           </div>
         ))}
       </div>
+
+      {/* Weekly Stats */}
+      {weekly && (
+        <div className="bg-gray-800 rounded-xl border border-gray-700 p-5 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-sm">📊 Weekly Summary <span className="text-gray-500 font-normal text-xs ml-1">{weekly.period}</span></h2>
+            {weekly.promotionReady > 0 && (
+              <a href="/support/playbooks" className="text-xs bg-emerald-600/20 text-emerald-400 border border-emerald-600/40 px-2 py-1 rounded hover:bg-emerald-600/30 transition">
+                ⬆️ {weekly.promotionReady} playbook{weekly.promotionReady > 1 ? 's' : ''} ready for Tier 1
+              </a>
+            )}
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {[
+              { label: 'Total', value: weekly.total, color: 'text-gray-200' },
+              { label: 'Resolved', value: `${weekly.resolved} (${weekly.automationRate}%)`, color: 'text-emerald-400' },
+              { label: 'MTTR', value: `${weekly.mttrMinutes}m`, color: 'text-purple-400' },
+              { label: 'Tier 3', value: weekly.tier3Count, color: weekly.tier3Count > 0 ? 'text-red-400' : 'text-gray-500' },
+              { label: 'New Playbooks', value: weekly.newPlaybooks, color: 'text-blue-400' },
+            ].map(s => (
+              <div key={s.label} className="bg-gray-900 rounded-lg p-3">
+                <p className="text-[10px] text-gray-500">{s.label}</p>
+                <p className={`text-lg font-bold mt-0.5 ${s.color}`}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+          {weekly.byFeature?.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {weekly.byFeature.slice(0, 5).map((f: any) => (
+                <span key={f.feature} className="text-[10px] bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                  {f.feature}: <span className="text-white font-semibold">{f.count}</span>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Incident Feed */}
       <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">

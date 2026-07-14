@@ -148,16 +148,19 @@ export default function PlaybooksPage() {
                   <td className="px-4 py-3 text-gray-400 text-xs">{p.symptoms?.length || 0} symptoms</td>
                   <td className="px-4 py-3 text-xs text-gray-500">{new Date(p.lastUpdated).toLocaleDateString()}</td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center">
                       <button onClick={() => setExpanded(expanded === p.id ? null : p.id)}
                         className="text-xs text-gray-400 hover:text-gray-200">
                         {expanded === p.id ? '▲' : '▼'}
                       </button>
                       <button onClick={() => setEditing(editing === p.id ? null : p.id)}
                         className="text-xs text-blue-400 hover:text-blue-300">Edit</button>
-                      {myRole === 'super_admin' && !p.isAutonomous && p.autoResolveAction && (
+                      {myRole === 'super_admin' && !p.isAutonomous && p.autoResolveAction && p.successCount >= 5 && (
                         <button onClick={() => handlePromote(p.id)}
-                          className="text-xs text-emerald-400 hover:text-emerald-300">Promote →T1</button>
+                          className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold">⬆ Promote T1</button>
+                      )}
+                      {!p.isAutonomous && p.successCount > 0 && p.successCount < 5 && (
+                        <span className="text-[10px] text-gray-500">{p.successCount}/5</span>
                       )}
                     </div>
                   </td>

@@ -1,27 +1,25 @@
 {
-  "name": "reportafrica",
+  "name": "@reportafrica/admin",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "npm@9.6.7",
-  "engines": {
-    "node": "20.x"
-  },
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "dev:api": "turbo run dev --filter=@reportafrica/api",
-    "dev:web": "turbo run dev --filter=@reportafrica/web",
-    "dev:admin": "turbo run dev --filter=@reportafrica/admin",
-    "dev:gov": "turbo run dev --filter=@reportafrica/gov-dashboard",
-    "dev:mobile": "cd apps/mobile && npm start"
+    "dev": "next dev -p 3002",
+    "build": "next build",
+    "start": "next start -p 3002"
+  },
+  "dependencies": {
+    "next": "^14.1.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
   },
   "devDependencies": {
-    "@swc/helpers": "^0.5.15",
-    "turbo": "^2.1.0"
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.0",
+    "typescript": "^5.3.0",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.32",
+    "autoprefixer": "^10.4.16"
   }
 }
