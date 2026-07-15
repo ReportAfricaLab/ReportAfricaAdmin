@@ -1,18 +1,28 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const getReturnTo = (): string => {
+    const param = searchParams.get('returnTo');
+    // Security: only allow relative paths
+    if (param && param.startsWith('/') && !param.startsWith('//')) return param;
+    const saved = typeof window !== 'undefined' ? sessionStorage.getItem('ra_return_to') : null;
+    if (saved && saved.startsWith('/') && !saved.startsWith('//')) return saved;
+    return '/feed';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +31,8 @@ export default function LoginPage() {
     try {
       const data = await api.auth.login({ email, password });
       login(data.user, data.token, data.refreshToken);
-      router.push('/feed');
+      sessionStorage.removeItem('ra_return_to');
+      router.push(getReturnTo());
     } catch (err: any) {
       setError(err.message || 'Login failed');
     } finally {
@@ -58,7 +69,8 @@ export default function LoginPage() {
     try {
       const data = await api.auth.oauth('google', idToken);
       login(data.user, data.token, data.refreshToken);
-      router.push('/feed');
+      sessionStorage.removeItem('ra_return_to');
+      router.push(getReturnTo());
     } catch (err: any) {
       setError(err.message || 'Google sign-in failed');
       setLoading(false);

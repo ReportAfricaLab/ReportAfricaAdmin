@@ -7,16 +7,13 @@ interface FetchOptions extends RequestInit {
 
 async function refreshAccessToken(): Promise<string | null> {
   try {
-    const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('ra_refresh') : null;
-    if (!refreshToken) return null;
-
+    // No localStorage read — refresh token is httpOnly cookie, sent automatically
     const res = await fetch(`${API_URL}/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
+      body: JSON.stringify({ refreshToken: '' }),
       credentials: 'include',
     });
-
     if (!res.ok) return null;
     const data = await res.json();
     if (data.token) {
@@ -32,11 +29,12 @@ async function refreshAccessToken(): Promise<string | null> {
 function clearAuthAndRedirect() {
   if (typeof window === 'undefined') return;
   localStorage.removeItem('ra_token');
-  localStorage.removeItem('ra_refresh');
   localStorage.removeItem('ra_user');
-  // Only redirect if not already on login/register page
+  // ra_refresh no longer in localStorage — nothing to remove
   if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
-    window.location.href = '/login';
+    const returnTo = window.location.pathname + window.location.search;
+    sessionStorage.setItem('ra_return_to', returnTo);
+    window.location.href = `/login?returnTo=${encodeURIComponent(returnTo)}`;
   }
 }
 
@@ -131,9 +129,9 @@ export const api = {
       fetchAPI('/upload/presigned-url', { method: 'POST', body: JSON.stringify({ fileType, contentType }), token }),
   },
   search: {
-    reports: (query: string, country?: string, page = 1) => fetchAPI(`/search/reports?query=${encodeURIComponent(query)}&country=${country || 'NG'}&page=${page}`),
+    reports: (query: string, country?: string, page = 1) => fetchAPI(`/search/reports?q=${encodeURIComponent(query)}&country=${country || 'NG'}&page=${page}`),
     trending: (country: string) => fetchAPI(`/search/trending?country=${country}`),
-    suggestions: (query: string, country?: string) => fetchAPI(`/search/suggestions?query=${encodeURIComponent(query)}&country=${country || 'NG'}`),
+    suggestions: (query: string, country?: string) => fetchAPI(`/search/suggestions?q=${encodeURIComponent(query)}&country=${country || 'NG'}`),
   },
   elections: {
     feed: (country: string, election?: string, page = 1) => fetchAPI(`/elections/feed?country=${country}&election=${encodeURIComponent(election || '')}&page=${page}`),
