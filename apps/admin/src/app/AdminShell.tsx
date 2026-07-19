@@ -20,6 +20,11 @@ const NAV = [
   { label: 'Team', href: '/team', icon: '🔑', roles: ['super_admin', 'admin'] },
   { label: 'Gov Agencies', href: '/gov-agencies', icon: '🏛️', roles: ['super_admin', 'admin'] },
   { label: 'Observers', href: '/observers', icon: '🗳️', roles: ['super_admin', 'admin'] },
+  { label: 'Bounties', href: '/bounties', icon: '🏹', roles: ['super_admin', 'admin', 'finance_admin'] },
+  { label: 'Assignments', href: '/assignments', icon: '📋', roles: ['super_admin', 'admin', 'finance_admin'] },
+  { label: 'Fan Subscriptions', href: '/fan-subscriptions', icon: '⭐', roles: ['super_admin', 'admin', 'finance_admin'] },
+  { label: 'Marketplace', href: '/marketplace', icon: '💼', roles: ['super_admin', 'admin', 'finance_admin'] },
+  { label: 'Sponsorships', href: '/sponsorships', icon: '🏷️', roles: ['super_admin', 'admin', 'finance_admin'] },
   { label: 'AMARA Support', href: '/support', icon: '🛡️', roles: ['super_admin', 'admin', 'support_admin'] },
 ];
 

@@ -29,6 +29,14 @@ export default function ReportsPage() {
     setTimeout(() => setMessage(''), 3000);
   };
 
+  const handleMarkBreaking = async (id: string) => {
+    try {
+      await adminAPI.markBreaking(id);
+      setMessage('🔴 Report marked as breaking news');
+    } catch (e: any) { setMessage('❌ ' + (e.message || 'Failed')); }
+    setTimeout(() => setMessage(''), 3000);
+  };
+
   const PINATA_GATEWAY = 'https://gateway.pinata.cloud/ipfs';
 
   return (
@@ -72,6 +80,8 @@ export default function ReportsPage() {
               <div className="flex gap-2 ml-4">
                 <button onClick={() => handleVerify(r.id)}
                   className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-500">Verify</button>
+                <button onClick={() => handleMarkBreaking(r.id)}
+                  className="px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded hover:bg-orange-500">🔴 Breaking</button>
                 <button onClick={() => handleDelete(r.id)}
                   className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-500">Delete</button>
               </div>

@@ -144,4 +144,45 @@ export const adminAPI = {
   submitMilestoneProof: (campaignId: string, mediaUrl: string) => adminFetch(`/donations/campaigns/${campaignId}/milestone-proof`, { method: 'POST', body: JSON.stringify({ mediaUrl }) }),
   verifyMilestone: (campaignId: string) => adminFetch(`/donations/campaigns/${campaignId}/milestone-verify`, { method: 'PATCH' }),
   milestoneStatus: (campaignId: string) => adminFetch(`/donations/campaigns/${campaignId}/milestone-status`),
+
+  // Bounties
+  bounties: () => adminFetch('/bounties/all'),
+  createBounty: (data: any) => adminFetch('/bounties', { method: 'POST', body: JSON.stringify(data) }),
+  approveBounty: (id: string) => adminFetch(`/bounties/${id}/approve`, { method: 'POST' }),
+  cancelBounty: (id: string) => adminFetch(`/bounties/${id}/cancel`, { method: 'PATCH' }),
+
+  // Assignments
+  assignments: () => adminFetch('/assignment-desk/all'),
+  createAssignment: (data: any) => adminFetch('/assignment-desk', { method: 'POST', body: JSON.stringify(data) }),
+  approveAssignment: (id: string) => adminFetch(`/assignment-desk/${id}/approve`, { method: 'PATCH' }),
+  rejectAssignment: (id: string, reason?: string) => adminFetch(`/assignment-desk/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
+
+  // Earnings pools + bonuses
+  getPools: () => adminFetch('/earnings/pools'),
+  distributeAdRevenue: (country?: string) => adminFetch(`/earnings/ad-revenue/distribute${country ? `?country=${country}` : ''}`, { method: 'POST' }),
+  runTrustBonus: () => adminFetch('/trust/bonus/run', { method: 'POST' }),
+
+  // Breaking news
+  markBreaking: (id: string) => adminFetch(`/reports/${id}/breaking`, { method: 'PATCH' }),
+
+  // Reporter Marketplace
+  marketplacePending: () => adminFetch('/reporter-marketplace/my/reporter-commissions'),
+  approveCommission: (id: string) => adminFetch(`/reporter-marketplace/commission/${id}/approve`, { method: 'PATCH' }),
+  rejectCommission: (id: string, reason: string) => adminFetch(`/reporter-marketplace/commission/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
+
+  // Sponsorships
+  sponsorships: () => adminFetch('/sponsorships/all'),
+  createSponsorship: (data: any) => adminFetch('/sponsorships', { method: 'POST', body: JSON.stringify(data) }),
+  pauseSponsorship: (id: string) => adminFetch(`/sponsorships/${id}/pause`, { method: 'PATCH' }),
+
+  // Fan subscriptions
+  fanSubStats: () => adminFetch('/admin/fan-subscriptions/stats'),
+
+  // Event mode
+  getEventMode: () => adminFetch('/admin/event-mode'),
+  toggleEventMode: (active: boolean) => adminFetch('/admin/event-mode', { method: 'PATCH', body: JSON.stringify({ active }) }),
+
+  // Street correspondents
+  correspondents: (country: string) => adminFetch(`/admin/correspondents?country=${country}`),
+  rewardCorrespondents: (country: string, amountPerReporter: number) => adminFetch('/admin/correspondents/reward', { method: 'POST', body: JSON.stringify({ country, amountPerReporter }) }),
 };

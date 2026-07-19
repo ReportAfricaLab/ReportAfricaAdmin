@@ -23,19 +23,24 @@ export default function AMARADashboard() {
   const [recentPlaybooks, setRecentPlaybooks] = useState<any[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [eventMode, setEventMode] = useState<boolean | null>(null);
+  const [togglingEvent, setTogglingEvent] = useState(false);
+  const [eventMsg, setEventMsg] = useState('');
 
   const load = useCallback(async () => {
     try {
-      const [s, i, w, p] = await Promise.all([
+      const [s, i, w, p, em] = await Promise.all([
         adminAPI.support.stats(),
         adminAPI.support.incidents(1),
         adminAPI.support.weeklyStats(),
         adminAPI.support.recentPlaybooks(),
+        adminAPI.getEventMode(),
       ]);
       setStats(s);
       setIncidents(i.data || []);
       setWeekly(w);
       setRecentPlaybooks(Array.isArray(p) ? p : []);
+      setEventMode(em?.active ?? false);
     } catch { }
     setLoading(false);
   }, []);
@@ -60,11 +65,37 @@ export default function AMARADashboard() {
           <h1 className="text-2xl font-bold">🛡️ AMARA Support</h1>
           <p className="text-sm text-gray-400 mt-1">AI-powered incident detection and escalation</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
+          {/* Event Mode Circuit Breaker */}
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${eventMode ? 'border-red-500 bg-red-600/10' : 'border-gray-700 bg-gray-800'}`}>
+            <span className={`w-2 h-2 rounded-full ${eventMode ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`} />
+            <span className={`text-xs font-semibold ${eventMode ? 'text-red-400' : 'text-gray-400'}`}>
+              {eventMode ? '⚡ EVENT MODE ON' : 'Event Mode Off'}
+            </span>
+            <button
+              onClick={async () => {
+                const next = !eventMode;
+                if (!confirm(next ? 'Activate Event Mode? Verified reports get ×5 boost, unverified penalised -100.' : 'Deactivate Event Mode?')) return;
+                setTogglingEvent(true);
+                try {
+                  await adminAPI.toggleEventMode(next);
+                  setEventMode(next);
+                  setEventMsg(next ? '⚡ Event Mode activated' : '✅ Event Mode deactivated');
+                } catch (e: any) { setEventMsg('❌ ' + (e.message || 'Failed')); }
+                setTogglingEvent(false);
+                setTimeout(() => setEventMsg(''), 4000);
+              }}
+              disabled={togglingEvent || eventMode === null}
+              className={`ml-1 px-2 py-1 text-[10px] font-bold rounded ${eventMode ? 'bg-red-600 text-white hover:bg-red-500' : 'bg-emerald-600 text-white hover:bg-emerald-500'} disabled:opacity-50`}>
+              {togglingEvent ? '...' : eventMode ? 'Deactivate' : 'Activate'}
+            </button>
+          </div>
           <a href="/support/playbooks" className="px-3 py-1.5 bg-gray-800 border border-gray-700 text-sm text-gray-300 rounded hover:border-emerald-500 transition">📋 Playbooks</a>
           <a href="/support/escalations" className="px-3 py-1.5 bg-amber-600/20 border border-amber-600/40 text-sm text-amber-400 rounded hover:bg-amber-600/30 transition">⚠️ Escalations</a>
         </div>
       </div>
+
+      {eventMsg && <div className="mb-4 p-3 rounded-lg bg-gray-800 border border-gray-700 text-sm">{eventMsg}</div>}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
