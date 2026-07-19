@@ -32,9 +32,10 @@ export default function BountiesPage() {
     catch (e: any) { notify('❌ ' + (e.message || 'Failed')); }
   };
 
-  const handleCancel = async (id: string) => {
-    if (!confirm('Cancel this bounty?')) return;
-    try { await adminAPI.cancelBounty(id); notify('✅ Bounty cancelled'); load(); }
+  const handleDispute = async (id: string) => {
+    const reason = prompt('Dispute reason:');
+    if (reason === null) return;
+    try { await adminAPI.disputeBounty(id, reason); notify('Bounty disputed'); load(); }
     catch (e: any) { notify('❌ ' + (e.message || 'Failed')); }
   };
 
@@ -128,16 +129,16 @@ export default function BountiesPage() {
               </div>
               <div className="flex gap-2 ml-4 shrink-0">
                 {b.status === 'claimed' && (
-                  <button onClick={() => handleApprove(b.id)}
-                    className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-500">
-                    ✓ Approve & Pay
-                  </button>
-                )}
-                {b.status === 'open' && (
-                  <button onClick={() => handleCancel(b.id)}
-                    className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-500">
-                    Cancel
-                  </button>
+                  <>
+                    <button onClick={() => handleApprove(b.id)}
+                      className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-500">
+                      ✓ Approve & Pay
+                    </button>
+                    <button onClick={() => handleDispute(b.id)}
+                      className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-500">
+                      Dispute
+                    </button>
+                  </>
                 )}
               </div>
             </div>
