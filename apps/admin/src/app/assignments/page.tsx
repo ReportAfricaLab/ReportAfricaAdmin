@@ -133,9 +133,16 @@ export default function AssignmentsPage() {
                 <div className="flex gap-4 mt-2 text-xs text-gray-500 flex-wrap">
                   <span className="text-amber-400 font-semibold">{a.rewardCurrency} {Number(a.rewardAmount).toLocaleString()}</span>
                   {a.assignedTo && <span>Reporter: <span className="text-gray-300">{a.assignedTo?.username || a.assignedToId?.slice(0, 8)}</span></span>}
+                  {a.submittedAt && <span>Submitted: {new Date(a.submittedAt).toLocaleDateString()}</span>}
                   {a.deadline && <span>Deadline: {new Date(a.deadline).toLocaleDateString()}</span>}
                   <span>Created: {new Date(a.createdAt).toLocaleDateString()}</span>
                 </div>
+                {a.reportId && (
+                  <a href={`https://reportafrica.africa/report/${a.reportId}`} target="_blank" rel="noreferrer"
+                    className="inline-block mt-1 text-xs text-blue-400 hover:underline">
+                    📎 View submitted report →
+                  </a>
+                )}
                 {a.submissionNote && <p className="text-xs text-blue-400 mt-1">Submission note: {a.submissionNote}</p>}
                 {a.rejectionReason && <p className="text-xs text-red-400 mt-1">Rejection reason: {a.rejectionReason}</p>}
               </div>

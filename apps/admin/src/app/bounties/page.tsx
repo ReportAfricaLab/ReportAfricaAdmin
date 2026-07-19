@@ -32,6 +32,12 @@ export default function BountiesPage() {
     catch (e: any) { notify('❌ ' + (e.message || 'Failed')); }
   };
 
+  const handleCancel = async (id: string) => {
+    if (!confirm('Cancel this bounty? It will be marked as expired.')) return;
+    try { await adminAPI.cancelBounty(id); notify('✅ Bounty cancelled'); load(); }
+    catch (e: any) { notify('❌ ' + (e.message || 'Failed')); }
+  };
+
   const handleDispute = async (id: string) => {
     const reason = prompt('Dispute reason:');
     if (reason === null) return;
@@ -128,6 +134,12 @@ export default function BountiesPage() {
                 {b.submissionNote && <p className="text-xs text-blue-400 mt-1">Note: {b.submissionNote}</p>}
               </div>
               <div className="flex gap-2 ml-4 shrink-0">
+                {b.status === 'open' && (
+                  <button onClick={() => handleCancel(b.id)}
+                    className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-500">
+                    Cancel
+                  </button>
+                )}
                 {b.status === 'claimed' && (
                   <>
                     <button onClick={() => handleApprove(b.id)}

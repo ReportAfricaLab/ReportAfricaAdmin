@@ -149,6 +149,7 @@ export const adminAPI = {
   bounties: () => adminFetch('/bounties/all'),
   createBounty: (data: any) => adminFetch('/bounties', { method: 'POST', body: JSON.stringify(data) }),
   approveBounty: (id: string) => adminFetch(`/bounties/${id}/approve`, { method: 'POST' }),
+  cancelBounty: (id: string) => adminFetch(`/bounties/${id}`, { method: 'DELETE' }),
   disputeBounty: (id: string, reason: string) => adminFetch(`/bounties/${id}/dispute`, { method: 'POST', body: JSON.stringify({ reason }) }),
 
   // Assignments
@@ -166,17 +167,17 @@ export const adminAPI = {
   markBreaking: (id: string) => adminFetch(`/reports/${id}/breaking`, { method: 'PATCH' }),
 
   // Reporter Marketplace
-  marketplacePending: () => adminFetch('/reporter-marketplace?page=1'),
-  approveCommission: (id: string) => adminFetch(`/reporter-marketplace/commission/${id}/approve`, { method: 'PATCH' }),
-  rejectCommission: (id: string, reason: string) => adminFetch(`/reporter-marketplace/commission/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
+  marketplacePending: () => adminFetch('/reporter-marketplace/admin/all'),
+  approveCommission: (id: string) => adminFetch(`/reporter-marketplace/admin/commission/${id}/approve`, { method: 'PATCH' }),
+  rejectCommission: (id: string, reason: string) => adminFetch(`/reporter-marketplace/admin/commission/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
 
   // Sponsorships
   sponsorships: () => adminFetch('/sponsorships/all'),
   createSponsorship: (data: any) => adminFetch('/sponsorships', { method: 'POST', body: JSON.stringify(data) }),
   pauseSponsorship: (id: string) => adminFetch(`/sponsorships/${id}/pause`, { method: 'PATCH' }),
 
-  // Fan subscriptions — uses earnings pools for ad_revenue balance; no dedicated admin stats endpoint exists yet
-  fanSubStats: () => adminFetch('/earnings/pools'),
+  // Fan subscriptions
+  fanSubStats: () => adminFetch('/fan-subscriptions/admin/stats'),
 
   // Event mode
   getEventMode: () => adminFetch('/admin/event-mode'),

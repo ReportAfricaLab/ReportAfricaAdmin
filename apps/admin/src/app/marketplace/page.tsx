@@ -36,7 +36,7 @@ export default function MarketplacePage() {
     catch (e: any) { notify('❌ ' + (e.message || 'Failed')); }
   };
 
-  const all: any[] = data?.commissions || data || [];
+  const all: any[] = data?.commissions || [];
   const tabMap: Record<Tab, string[]> = {
     pending: ['escrowed', 'accepted', 'submitted'],
     approved: ['approved', 'paid'],
